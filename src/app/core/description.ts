@@ -74,6 +74,12 @@ export function serializeDescription(project: WatchfaceProject): string {
     pkgName: project.watchface.id ?? "",
     shape: project.description.shape || (isRound ? "round" : "square"),
     watchOS: "vela",
+    // 官方固定表盘元数据规约，写死输出
+    imageFormat: "indexed8",
+    imageCompression: "true",
+    watchfaceType: "normal",
+    imageArrayRamMethod: "whole",
+    _recolorEnable: "false",
   };
   const orderedKeys = [
     ...DESCRIPTION_ORDER.filter((key) => key in values),

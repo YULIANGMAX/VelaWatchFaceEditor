@@ -1099,45 +1099,5 @@ export const DESCRIPTION_EDITOR_FIELDS = [
     "label": "作者",
     "kind": "text",
     "valueType": "string"
-  },
-  {
-    "key": "imageFormat",
-    "label": "图片格式",
-    "kind": "select",
-    "valueType": "string",
-    "options": [
-      "indexed8",
-      "rgba8888"
-    ]
-  },
-  {
-    "key": "imageCompression",
-    "label": "图片压缩",
-    "kind": "boolean",
-    "valueType": "boolean"
-  },
-  {
-    "key": "watchfaceType",
-    "label": "表盘类型",
-    "kind": "select",
-    "valueType": "string",
-    "options": [
-      "normal"
-    ]
-  },
-  {
-    "key": "imageArrayRamMethod",
-    "label": "图片数组载入",
-    "kind": "select",
-    "valueType": "string",
-    "options": [
-      "whole"
-    ]
-  },
-  {
-    "key": "_recolorEnable",
-    "label": "启用换色",
-    "kind": "boolean",
-    "valueType": "boolean"
   }
 ] as const;
