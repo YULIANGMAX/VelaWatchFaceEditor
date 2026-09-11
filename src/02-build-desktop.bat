@@ -9,7 +9,7 @@ if not exist "node_modules\" (
     if errorlevel 1 goto :error
 )
 
-echo [Vela Watch Face Editor] Building desktop release with Tauri...
+echo [Vela Watch Face Editor] Syncing icons and building desktop release with Tauri...
 call npm run tauri:build
 if errorlevel 1 goto :error
 

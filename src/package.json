@@ -10,6 +10,9 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "tauri": "tauri",
+    "tauri:icon": "tauri icon public/favicon.svg",
+    "pretauri:dev": "npm run tauri:icon",
+    "pretauri:build": "npm run tauri:icon",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build --no-bundle"
   },
