@@ -12,6 +12,8 @@ target/
 **/src-tauri/target/
 **/src-tauri/gen/schemas/
 **/*.rs.bk
+**/src-tauri/icons/android/
+**/src-tauri/icons/ios/
 
 # 环境配置与本地变量
 .env

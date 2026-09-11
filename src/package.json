@@ -10,7 +10,7 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "tauri": "tauri",
-    "tauri:icon": "tauri icon public/favicon.svg",
+    "tauri:icon": "node scripts/sync-icon.mjs",
     "pretauri:dev": "npm run tauri:icon",
     "pretauri:build": "npm run tauri:icon",
     "tauri:dev": "tauri dev",
