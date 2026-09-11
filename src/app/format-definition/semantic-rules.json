@@ -1,0 +1,108 @@
+{
+  "$schema": "./semantic-rules.schema.json",
+  "schemaVersion": 1,
+  "rules": [
+    {
+      "id": "root-color-table-exclusive",
+      "kind": "mutuallyExclusiveAttributes",
+      "target": { "scope": "root" },
+      "attributes": ["recolorTable", "colorGroupTable"],
+      "code": "conflicting-color-tables",
+      "severity": "error",
+      "message": "recolorTable 与 colorGroupTable 不能同时使用"
+    },
+    {
+      "id": "text-source",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["DataItemText"] },
+      "minimum": 1,
+      "code": "missing-text-source",
+      "severity": "error",
+      "message": "DataItemText 至少需要一个有效 Content"
+    },
+    {
+      "id": "range-start",
+      "kind": "anyAttribute",
+      "target": { "scope": "resource", "resourceTypes": ["DataItemPointer", "DataItemArcProgressBar", "DataItemLineProgressBar"] },
+      "attributes": ["valueStart", "valueStartSource"],
+      "code": "missing-value-start",
+      "severity": "error",
+      "message": "需要 valueStart 或 valueStartSource"
+    },
+    {
+      "id": "range-length",
+      "kind": "anyAttribute",
+      "target": { "scope": "resource", "resourceTypes": ["DataItemPointer", "DataItemArcProgressBar", "DataItemLineProgressBar"] },
+      "attributes": ["valueRange", "valueRangeSource"],
+      "code": "missing-value-range",
+      "severity": "error",
+      "message": "需要 valueRange 或 valueRangeSource"
+    },
+    {
+      "id": "decimal-digits",
+      "kind": "attributeLessThan",
+      "target": { "scope": "resource", "resourceTypes": ["DataItemImageNumber"] },
+      "left": "decimalDigits",
+      "right": "totalDigits",
+      "code": "invalid-decimal-digits",
+      "severity": "error",
+      "message": "decimalDigits 必须小于 totalDigits"
+    },
+    {
+      "id": "image-array-not-empty",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["ImageArray"] },
+      "minimum": 1,
+      "code": "empty-image-array",
+      "severity": "error",
+      "message": "ImageArray 至少需要一张图片"
+    },
+    {
+      "id": "image-values-not-empty",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["DataItemImageValues"] },
+      "minimum": 1,
+      "code": "empty-image-values",
+      "severity": "error",
+      "message": "DataItemImageValues 至少需要一个 Param"
+    },
+    {
+      "id": "translation-not-empty",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["Translation"] },
+      "minimum": 1,
+      "code": "empty-translation",
+      "severity": "error",
+      "message": "Translation 至少需要一个 Item"
+    },
+    {
+      "id": "translation-language-unique",
+      "kind": "uniqueChildAttribute",
+      "target": { "scope": "resource", "resourceTypes": ["Translation"] },
+      "childAttribute": "language",
+      "code": "duplicate-language",
+      "severity": "error",
+      "message": "语言 {value} 重复"
+    },
+    {
+      "id": "widget-slot-not-empty",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["Slot"] },
+      "minimum": 1,
+      "when": { "attribute": "type", "values": ["widget"] },
+      "code": "empty-widget-slot",
+      "severity": "error",
+      "message": "widget 槽位至少需要一个 Widget Item"
+    },
+    {
+      "id": "non-widget-slot-empty",
+      "kind": "childCount",
+      "target": { "scope": "resource", "resourceTypes": ["Slot"] },
+      "maximum": 0,
+      "when": { "attribute": "type", "values": ["widget"], "negate": true },
+      "code": "slot-children-not-applicable",
+      "severity": "error",
+      "message": "{type} 槽位不能包含 Item"
+    }
+  ]
+}

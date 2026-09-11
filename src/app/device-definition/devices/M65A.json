@@ -1,0 +1,265 @@
+{
+    "$schema": "../device.schema.json",
+    "schemaVersion": 2,
+    "deviceType": "M65A",
+    "name": "Redmi Watch 3 Active",
+    "system": "vela",
+    "display": {
+        "width": 240,
+        "height": 280,
+        "cornerRadius": 55
+    },
+    "manifest": {
+        "resourceTypes": {
+            "policy": "all-format",
+            "include": [],
+            "exclude": []
+        },
+        "attributes": {
+            "policy": "allow-list",
+            "include": {
+                "Watchface": [
+                    "id",
+                    "name",
+                    "recolorTable",
+                    "colorGroupTable"
+                ],
+                "Theme": [
+                    "type",
+                    "name",
+                    "bgColor",
+                    "preview"
+                ],
+                "Layout": [
+                    "ref",
+                    "x",
+                    "y"
+                ],
+                "Image": [
+                    "name",
+                    "src",
+                    "compressMethod",
+                    "format",
+                    "recolorEnable",
+                    "colorGroup"
+                ],
+                "ImageArray": [
+                    "name",
+                    "compressMethod",
+                    "format",
+                    "recolorEnable",
+                    "colorGroup"
+                ],
+                "ImageArray/Image": [
+                    "src"
+                ],
+                "Sprite": [
+                    "name",
+                    "ref",
+                    "repeatCount",
+                    "interval"
+                ],
+                "File": [
+                    "name",
+                    "filename"
+                ],
+                "Translation": [
+                    "name"
+                ],
+                "Translation/Item": [
+                    "language",
+                    "str"
+                ],
+                "DataItemText": [
+                    "name",
+                    "source",
+                    "align",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "w",
+                    "h",
+                    "fontId",
+                    "fontSize",
+                    "fontWeight",
+                    "color",
+                    "opacity",
+                    "letterSpace",
+                    "lineSpace",
+                    "longMode",
+                    "style",
+                    "string",
+                    "radius",
+                    "verticalAlign",
+                    "startAngle",
+                    "span"
+                ],
+                "DataItemText/Content": [
+                    "source"
+                ],
+                "DataItemImageNumber": [
+                    "name",
+                    "source",
+                    "align",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "ref",
+                    "totalDigits",
+                    "decimalDigits",
+                    "leadingZero",
+                    "trailingZero",
+                    "decimalOffsetX",
+                    "space",
+                    "unitIcon"
+                ],
+                "DataItemImageValues": [
+                    "name",
+                    "source",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "ref"
+                ],
+                "DataItemImageValues/Param": [
+                    "value"
+                ],
+                "DataItemPointer": [
+                    "name",
+                    "source",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "ref",
+                    "valueStart",
+                    "valueStartSource",
+                    "valueRange",
+                    "valueRangeSource",
+                    "pivotX",
+                    "pivotY",
+                    "angleStart",
+                    "angleRange"
+                ],
+                "DataItemArcProgressBar": [
+                    "name",
+                    "source",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "ref",
+                    "bg",
+                    "valueStart",
+                    "valueStartSource",
+                    "valueRange",
+                    "valueRangeSource",
+                    "endingStyle",
+                    "indicatorImage",
+                    "pivotX",
+                    "pivotY",
+                    "angleStart",
+                    "angleRange",
+                    "barRadius",
+                    "barWidth",
+                    "indicatorRadius"
+                ],
+                "DataItemLineProgressBar": [
+                    "name",
+                    "source",
+                    "renderRule",
+                    "parameter",
+                    "rotation",
+                    "ref",
+                    "bg",
+                    "valueStart",
+                    "valueStartSource",
+                    "valueRange",
+                    "valueRangeSource",
+                    "endingStyle",
+                    "indicatorImage",
+                    "startX",
+                    "startY",
+                    "endX",
+                    "endY",
+                    "barWidth",
+                    "offsetX",
+                    "offsetY"
+                ],
+                "Slot": [
+                    "name",
+                    "type",
+                    "appWidgetID"
+                ],
+                "Slot/Item": [
+                    "ref"
+                ],
+                "Widget": [
+                    "name",
+                    "widgetName",
+                    "groupType",
+                    "jumpApp",
+                    "args",
+                    "w",
+                    "h",
+                    "editBox",
+                    "preview",
+                    "flex_direction",
+                    "justify_content",
+                    "align_content",
+                    "align_items",
+                    "gap"
+                ],
+                "Widget/Item": [
+                    "ref",
+                    "x",
+                    "y"
+                ]
+            },
+            "exclude": {},
+            "values": {}
+        }
+    },
+    "binary": {
+        "header": {
+            "size": 168,
+            "combinationFlagsBase": 0,
+            "fixedFields": [
+                {
+                    "offset": 0,
+                    "encoding": "hex",
+                    "value": "5AA53412"
+                },
+                {
+                    "offset": 6,
+                    "encoding": "uint8",
+                    "value": 1
+                },
+                {
+                    "offset": 10,
+                    "encoding": "uint8",
+                    "value": 1
+                },
+                {
+                    "offset": 16,
+                    "encoding": "uint32le",
+                    "value": 2048
+                }
+            ]
+        },
+        "resourceEncoding": {
+            "imageValuesParameterDefault": 1000,
+            "imageValuesParameterMode": "attribute",
+            "progressParameterDefault": 1000,
+            "indexed8Dithering": "floyd-steinberg",
+            "imageArrayIndexed8Dithering": "floyd-steinberg"
+        }
+    },
+    "dataSources": {
+        "catalog": "vela",
+        "policy": "all-known",
+        "include": [],
+        "exclude": [],
+        "allowRawCodes": true,
+        "codeOverrides": {},
+        "verification": "unverified"
+    }
+}

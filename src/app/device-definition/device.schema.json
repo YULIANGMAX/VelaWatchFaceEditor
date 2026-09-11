@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mi-watchface-editor.local/schema/device.schema.json",
+  "title": "Vela 表盘设备定义",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "deviceType", "name", "system", "display", "manifest", "binary", "dataSources"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 2 },
+    "deviceType": { "type": "string", "pattern": "^[A-Z][A-Z0-9]*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "system": { "const": "vela" },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "cornerRadius"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "cornerRadius": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceTypes", "attributes"],
+      "properties": {
+        "resourceTypes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy", "include", "exclude"],
+          "properties": {
+            "policy": { "enum": ["all-format", "allow-list"] },
+            "include": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+            "exclude": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy", "include", "exclude", "values"],
+          "properties": {
+            "policy": { "enum": ["all-format", "allow-list"] },
+            "include": { "$ref": "#/$defs/attributeMap" },
+            "exclude": {
+              "$ref": "#/$defs/attributeMap"
+            },
+            "values": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "binary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["header", "resourceEncoding"],
+      "properties": {
+        "header": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["size", "combinationFlagsBase", "fixedFields"],
+          "properties": {
+            "size": { "type": "integer", "minimum": 168 },
+            "combinationFlagsBase": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "fixedFields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["offset", "encoding", "value"],
+                "properties": {
+                  "offset": { "type": "integer", "minimum": 0 },
+                  "encoding": { "enum": ["hex", "uint8", "uint16le", "uint32le"] },
+                  "value": { "oneOf": [{ "type": "integer", "minimum": 0 }, { "type": "string", "pattern": "^(?:[0-9a-fA-F]{2})+$" }] }
+                }
+              }
+            }
+          }
+        },
+        "resourceEncoding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["imageValuesParameterMode", "imageValuesParameterDefault", "progressParameterDefault", "indexed8Dithering", "imageArrayIndexed8Dithering"],
+          "properties": {
+            "imageValuesParameterMode": { "enum": ["fixed", "attribute"] },
+            "imageValuesParameterDefault": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "progressParameterDefault": { "type": "integer", "minimum": 0, "maximum": 65535 },
+            "indexed8Dithering": { "enum": ["nearest", "floyd-steinberg"] },
+            "imageArrayIndexed8Dithering": { "enum": ["nearest", "floyd-steinberg"] }
+          }
+        }
+      }
+    },
+    "dataSources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog", "policy", "include", "exclude", "allowRawCodes", "codeOverrides", "verification"],
+      "properties": {
+        "catalog": { "type": "string", "minLength": 1 },
+        "policy": { "enum": ["all-known", "allow-list"] },
+        "include": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "exclude": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "allowRawCodes": { "type": "boolean" },
+        "codeOverrides": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^[0-9a-fA-F]{4}$" } },
+        "verification": { "enum": ["verified", "unverified"] }
+      }
+    }
+  },
+  "$defs": {
+    "attributeMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,1436 @@
+{
+  "$schema": "./manifest-spec.schema.json",
+  "schemaVersion": 1,
+  "format": "vela-manifest-observed-p65-v1",
+  "structure": {
+    "root": {
+      "tag": "Watchface",
+      "fields": [
+        {
+          "key": "id",
+          "type": "string",
+          "required": true,
+          "pattern": "^\\d{9}(?:\\d{3})?$",
+          "patternErrorCode": "invalid-watchface-id",
+          "patternErrorMessage": "表盘 ID 必须为 9 位或 12 位数字"
+        },
+        {
+          "key": "name",
+          "type": "textOrReference",
+          "required": true,
+          "referenceTypes": [
+            "Translation"
+          ]
+        },
+        {
+          "key": "width",
+          "type": "number",
+          "minimum": 1
+        },
+        {
+          "key": "height",
+          "type": "number",
+          "minimum": 1
+        },
+        {
+          "key": "SKU",
+          "type": "boolean"
+        },
+        {
+          "key": "compressMethod",
+          "type": "string",
+          "enum": [
+            "RLEReversed",
+            "None"
+          ]
+        },
+        {
+          "key": "advanced",
+          "type": "boolean"
+        },
+        {
+          "key": "interactive",
+          "type": "boolean"
+        },
+        {
+          "key": "powerConsumptionLevel",
+          "type": "number",
+          "enum": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ]
+        },
+        {
+          "key": "support_literal",
+          "type": "boolean"
+        },
+        {
+          "key": "editable",
+          "type": "boolean"
+        },
+        {
+          "key": "recolorTable",
+          "type": "string"
+        },
+        {
+          "key": "colorGroupTable",
+          "type": "string"
+        }
+      ],
+      "children": [
+        {
+          "tag": "Resources",
+          "minimum": 1,
+          "maximum": 1
+        },
+        {
+          "tag": "Theme",
+          "minimum": 1
+        }
+      ]
+    },
+    "resources": {
+      "tag": "Resources",
+      "resourceTypes": [
+        "Image",
+        "ImageArray",
+        "Sprite",
+        "File",
+        "Translation",
+        "DataItemText",
+        "DataItemImageNumber",
+        "DataItemImageValues",
+        "DataItemPointer",
+        "DataItemArcProgressBar",
+        "DataItemLineProgressBar",
+        "Slot",
+        "Widget"
+      ]
+    },
+    "theme": {
+      "tag": "Theme",
+      "fields": [
+        {
+          "key": "type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "normal",
+            "AOD"
+          ]
+        },
+        {
+          "key": "name",
+          "type": "string"
+        },
+        {
+          "key": "bgColor",
+          "type": "color"
+        },
+        {
+          "key": "preview",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "isPhotoAlbumWatchface",
+          "type": "boolean"
+        }
+      ],
+      "child": {
+        "tag": "Layout",
+        "fields": [
+          {
+            "key": "ref",
+            "type": "reference",
+            "required": true,
+            "referenceTypes": [
+              "Image",
+              "ImageArray",
+              "Sprite",
+              "DataItemText",
+              "DataItemImageNumber",
+              "DataItemImageValues",
+              "DataItemPointer",
+              "DataItemArcProgressBar",
+              "DataItemLineProgressBar",
+              "Slot",
+              "Widget"
+            ]
+          },
+          {
+            "key": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "key": "y",
+            "type": "number",
+            "required": true
+          }
+        ]
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Image",
+      "defaults": {
+        "name": "Image1",
+        "src": "",
+        "compressMethod": "RLEReversed",
+        "format": "RGBA32",
+        "recolorEnable": "false"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "src",
+          "type": "asset",
+          "required": true,
+          "assetType": "image"
+        },
+        {
+          "key": "compressMethod",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "RLEReversed",
+            "None"
+          ]
+        },
+        {
+          "key": "format",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "RGBA32",
+            "RGB565A8",
+            "indexed8"
+          ]
+        },
+        {
+          "key": "recolorEnable",
+          "type": "boolean"
+        },
+        {
+          "key": "colorGroup",
+          "type": "color"
+        }
+      ]
+    },
+    {
+      "type": "ImageArray",
+      "defaults": {
+        "name": "ImageArray1",
+        "compressMethod": "RLEReversed",
+        "format": "RGBA32",
+        "recolorEnable": "false"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "compressMethod",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "RLEReversed",
+            "None"
+          ]
+        },
+        {
+          "key": "format",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "RGBA32",
+            "RGB565A8",
+            "indexed8"
+          ]
+        },
+        {
+          "key": "recolorEnable",
+          "type": "boolean"
+        },
+        {
+          "key": "colorGroup",
+          "type": "color"
+        }
+      ],
+      "child": {
+        "tag": "Image",
+        "fields": [
+          {
+            "key": "src",
+            "type": "asset",
+            "required": true,
+            "assetType": "image"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Sprite",
+      "defaults": {
+        "name": "Sprite1",
+        "ref": "",
+        "repeatCount": "0",
+        "interval": "80"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "ImageArray"
+          ]
+        },
+        {
+          "key": "repeatCount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "key": "interval",
+          "type": "number",
+          "required": true,
+          "minimum": 1,
+          "maximum": 65535
+        }
+      ]
+    },
+    {
+      "type": "File",
+      "defaults": {
+        "name": "_lua/code/main.lua",
+        "filename": ""
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "filename",
+          "type": "asset",
+          "required": true,
+          "assetType": "any"
+        }
+      ]
+    },
+    {
+      "type": "Translation",
+      "defaults": {
+        "name": "Translation1"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "child": {
+        "tag": "Item",
+        "fields": [
+          {
+            "key": "language",
+            "type": "string",
+            "required": true,
+            "enum": [
+              "en_US",
+              "zh_CN",
+              "zh_TW",
+              "ja_JP",
+              "es_ES",
+              "fr_FR",
+              "de_DE",
+              "ru_RU",
+              "pt_BR",
+              "pt_PT",
+              "it_IT",
+              "ko_KR",
+              "tr_TR",
+              "nl_NL",
+              "th_TH",
+              "sv_SE",
+              "da_DK",
+              "vi_VN",
+              "nb_NO",
+              "pl_PL",
+              "fi_FI",
+              "in_ID",
+              "el_GR",
+              "ro_RO",
+              "cs_CZ",
+              "uk_UA",
+              "hu_HU",
+              "sk_SK",
+              "zh_HK",
+              "iw_IL",
+              "ar_EG"
+            ]
+          },
+          {
+            "key": "str",
+            "type": "string",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "DataItemText",
+      "defaults": {
+        "name": "Text1",
+        "parameter": "1000",
+        "w": "80",
+        "h": "30",
+        "fontId": "misans",
+        "fontSize": "20",
+        "fontWeight": "regular",
+        "color": "#ffffff",
+        "style": "normal",
+        "string": "%d"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "align",
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "w",
+          "type": "number",
+          "minimum": 1,
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          },
+          "requiredWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          }
+        },
+        {
+          "key": "h",
+          "type": "number",
+          "minimum": 1,
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          },
+          "requiredWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          }
+        },
+        {
+          "key": "fontId",
+          "type": "string",
+          "enum": [
+            "misanslatin",
+            "misansw",
+            "misanstc",
+            "misans",
+            "notosans"
+          ]
+        },
+        {
+          "key": "fontSize",
+          "type": "number",
+          "minimum": 1
+        },
+        {
+          "key": "fontWeight",
+          "type": "string",
+          "enum": [
+            "bold",
+            "demibold",
+            "extralight",
+            "heavy",
+            "light",
+            "medium",
+            "normal",
+            "regular",
+            "semibold",
+            "thin"
+          ]
+        },
+        {
+          "key": "color",
+          "type": "color"
+        },
+        {
+          "key": "opacity",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        {
+          "key": "letterSpace",
+          "type": "number"
+        },
+        {
+          "key": "lineSpace",
+          "type": "number",
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          }
+        },
+        {
+          "key": "longMode",
+          "type": "string",
+          "enum": [
+            "wrap",
+            "dots",
+            "scroll",
+            "scroll_circular",
+            "clip"
+          ],
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "normal",
+              ""
+            ]
+          }
+        },
+        {
+          "key": "style",
+          "type": "string",
+          "enum": [
+            "normal",
+            "arc"
+          ]
+        },
+        {
+          "key": "string",
+          "type": "textOrReference",
+          "referenceTypes": [
+            "Translation"
+          ]
+        },
+        {
+          "key": "radius",
+          "type": "number",
+          "minimum": 0,
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "arc"
+            ]
+          }
+        },
+        {
+          "key": "verticalAlign",
+          "type": "string",
+          "enum": [
+            "top",
+            "center",
+            "bottom"
+          ],
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "arc"
+            ]
+          }
+        },
+        {
+          "key": "startAngle",
+          "type": "number",
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "arc"
+            ]
+          }
+        },
+        {
+          "key": "span",
+          "type": "number",
+          "visibleWhen": {
+            "key": "style",
+            "values": [
+              "arc"
+            ]
+          }
+        }
+      ],
+      "child": {
+        "tag": "Content",
+        "fields": [
+          {
+            "key": "source",
+            "type": "dataSource",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "DataItemImageNumber",
+      "defaults": {
+        "name": "ImageNumber1",
+        "source": "timeHour",
+        "ref": "",
+        "parameter": "1000",
+        "supportRecolor": "false",
+        "totalDigits": "2",
+        "decimalDigits": "0",
+        "leadingZero": "false",
+        "trailingZero": "false",
+        "decimalOffsetX": "0",
+        "space": "0"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "type": "dataSource",
+          "required": true
+        },
+        {
+          "key": "align",
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        {
+          "key": "renderRule",
+          "type": "string",
+          "enum": [
+            "alwaysShow",
+            "hideWhenUnitMismatch",
+            "hideWhenOutRange"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "supportRecolor",
+          "type": "boolean"
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "ImageArray"
+          ]
+        },
+        {
+          "key": "totalDigits",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "key": "decimalDigits",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "key": "leadingZero",
+          "type": "boolean"
+        },
+        {
+          "key": "trailingZero",
+          "type": "boolean"
+        },
+        {
+          "key": "decimalOffsetX",
+          "type": "number"
+        },
+        {
+          "key": "space",
+          "type": "number"
+        },
+        {
+          "key": "unitIcon",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "DataItemImageValues",
+      "defaults": {
+        "name": "ImageValues1",
+        "source": "systemStatusBattery",
+        "ref": "",
+        "parameter": "1000",
+        "supportRecolor": "false"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "type": "dataSource",
+          "required": true
+        },
+        {
+          "key": "renderRule",
+          "type": "string",
+          "enum": [
+            "alwaysShow",
+            "hideWhenUnitMismatch",
+            "hideWhenOutRange"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "supportRecolor",
+          "type": "boolean"
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "ImageArray"
+          ]
+        }
+      ],
+      "child": {
+        "tag": "Param",
+        "fields": [
+          {
+            "key": "value",
+            "type": "number",
+            "required": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "DataItemPointer",
+      "defaults": {
+        "name": "Pointer1",
+        "source": "timeSecond",
+        "ref": "",
+        "parameter": "1000",
+        "supportRecolor": "false",
+        "pivotX": "0",
+        "pivotY": "0",
+        "angleStart": "0",
+        "angleRange": "360",
+        "valueStart": "0",
+        "valueRange": "60"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "type": "dataSource",
+          "required": true
+        },
+        {
+          "key": "renderRule",
+          "type": "string",
+          "enum": [
+            "alwaysShow",
+            "hideWhenUnitMismatch",
+            "hideWhenOutRange"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "supportRecolor",
+          "type": "boolean"
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "valueStart",
+          "type": "number"
+        },
+        {
+          "key": "valueStartSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "valueRange",
+          "type": "number"
+        },
+        {
+          "key": "valueRangeSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "pivotX",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "pivotY",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "angleStart",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "angleRange",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    {
+      "type": "DataItemArcProgressBar",
+      "defaults": {
+        "name": "ArcProgressBar1",
+        "source": "systemStatusBattery",
+        "ref": "",
+        "parameter": "1000",
+        "supportRecolor": "false",
+        "valueStart": "0",
+        "valueRange": "100",
+        "pivotX": "50",
+        "pivotY": "50",
+        "angleStart": "0",
+        "angleRange": "360",
+        "barRadius": "40",
+        "barWidth": "8",
+        "endingStyle": "round"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "type": "dataSource",
+          "required": true
+        },
+        {
+          "key": "renderRule",
+          "type": "string",
+          "enum": [
+            "alwaysShow",
+            "hideWhenUnitMismatch",
+            "hideWhenOutRange"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "supportRecolor",
+          "type": "boolean"
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "bg",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "valueStart",
+          "type": "number"
+        },
+        {
+          "key": "valueStartSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "valueRange",
+          "type": "number"
+        },
+        {
+          "key": "valueRangeSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "endingStyle",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "normal",
+            "round"
+          ]
+        },
+        {
+          "key": "indicatorImage",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "pivotX",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "pivotY",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "angleStart",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "angleRange",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "barRadius",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "key": "barWidth",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "key": "indicatorRadius",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "type": "DataItemLineProgressBar",
+      "defaults": {
+        "name": "LineProgressBar1",
+        "source": "systemStatusBattery",
+        "ref": "",
+        "parameter": "1000",
+        "supportRecolor": "false",
+        "valueStart": "0",
+        "valueRange": "100",
+        "startX": "0",
+        "startY": "0",
+        "endX": "100",
+        "endY": "0",
+        "barWidth": "8",
+        "endingStyle": "round"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "source",
+          "type": "dataSource",
+          "required": true
+        },
+        {
+          "key": "renderRule",
+          "type": "string",
+          "enum": [
+            "alwaysShow",
+            "hideWhenUnitMismatch",
+            "hideWhenOutRange"
+          ]
+        },
+        {
+          "key": "parameter",
+          "type": "number",
+          "minimum": 30,
+          "maximum": 1000
+        },
+        {
+          "key": "rotation",
+          "type": "number"
+        },
+        {
+          "key": "supportRecolor",
+          "type": "boolean"
+        },
+        {
+          "key": "ref",
+          "type": "reference",
+          "required": true,
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "bg",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "valueStart",
+          "type": "number"
+        },
+        {
+          "key": "valueStartSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "valueRange",
+          "type": "number"
+        },
+        {
+          "key": "valueRangeSource",
+          "type": "dataSource"
+        },
+        {
+          "key": "endingStyle",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "normal",
+            "round"
+          ]
+        },
+        {
+          "key": "indicatorImage",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "startX",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "startY",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "endX",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "endY",
+          "type": "number",
+          "required": true
+        },
+        {
+          "key": "barWidth",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "key": "offsetX",
+          "type": "number"
+        },
+        {
+          "key": "offsetY",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "type": "Slot",
+      "defaults": {
+        "name": "Slot1",
+        "type": "widget"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "widget",
+            "appWidget",
+            "dualTime"
+          ]
+        },
+        {
+          "key": "appWidgetID",
+          "type": "string",
+          "enum": [
+            "heartRateRectangleDark",
+            "fitnessRectangleDarkStep"
+          ],
+          "visibleWhen": {
+            "key": "type",
+            "values": [
+              "appWidget"
+            ]
+          },
+          "requiredWhen": {
+            "key": "type",
+            "values": [
+              "appWidget"
+            ]
+          }
+        }
+      ],
+      "child": {
+        "tag": "Item",
+        "fields": [
+          {
+            "key": "ref",
+            "type": "reference",
+            "required": true,
+            "referenceTypes": [
+              "Widget"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "Widget",
+      "defaults": {
+        "name": "Widget1",
+        "groupType": "general"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "key": "widgetName",
+          "type": "textOrReference",
+          "referenceTypes": [
+            "Translation"
+          ]
+        },
+        {
+          "key": "groupType",
+          "type": "string",
+          "enum": [
+            "general"
+          ]
+        },
+        {
+          "key": "jumpApp",
+          "type": "string",
+          "enum": [
+            "pressure",
+            "breath",
+            "heartrate",
+            "sleep",
+            "SpO2",
+            "sport",
+            "activities",
+            "media",
+            "settings",
+            "compass",
+            "flashlight",
+            "calendar",
+            "remoteCamera",
+            "sportsRecord",
+            "alipay",
+            "womenHealth",
+            "chronograph",
+            "weather",
+            "phone",
+            "wxpay",
+            "timer",
+            "findPhone",
+            "alarm",
+            "recorder",
+            "barometer",
+            "nfcCard",
+            "voiceAssistant",
+            "contact",
+            "sportsCourse",
+            "temperature",
+            "share",
+            "bloodPressure",
+            "ECG",
+            "vitalityValue",
+            "jsApplication",
+            "luaApplication",
+            "trainingStatus",
+            "todo",
+            "miJia",
+            "glucose",
+            "sms",
+            "worldclock",
+            "perpetualcalendar",
+            "amap",
+            "intercom",
+            "navigation",
+            "research",
+            "wechat"
+          ]
+        },
+        {
+          "key": "args",
+          "type": "reference",
+          "visibleWhen": {
+            "key": "jumpApp",
+            "values": [
+              "jsApplication",
+              "luaApplication"
+            ]
+          },
+          "referenceTypes": [
+            "File"
+          ]
+        },
+        {
+          "key": "w",
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "key": "h",
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "key": "editBox",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "preview",
+          "type": "reference",
+          "referenceTypes": [
+            "Image"
+          ]
+        },
+        {
+          "key": "flex_direction",
+          "type": "string",
+          "enum": [
+            "row",
+            "column"
+          ]
+        },
+        {
+          "key": "justify_content",
+          "type": "string",
+          "enum": [
+            "flex-start",
+            "center",
+            "flex-end"
+          ],
+          "visibleWhen": {
+            "key": "flex_direction",
+            "values": [
+              "row",
+              "column"
+            ]
+          }
+        },
+        {
+          "key": "align_content",
+          "type": "string",
+          "enum": [
+            "flex-start",
+            "center",
+            "flex-end"
+          ],
+          "visibleWhen": {
+            "key": "flex_direction",
+            "values": [
+              "row",
+              "column"
+            ]
+          }
+        },
+        {
+          "key": "align_items",
+          "type": "string",
+          "enum": [
+            "flex-start",
+            "center",
+            "flex-end"
+          ],
+          "visibleWhen": {
+            "key": "flex_direction",
+            "values": [
+              "row",
+              "column"
+            ]
+          }
+        },
+        {
+          "key": "gap",
+          "type": "number",
+          "visibleWhen": {
+            "key": "flex_direction",
+            "values": [
+              "row",
+              "column"
+            ]
+          }
+        }
+      ],
+      "child": {
+        "tag": "Item",
+        "fields": [
+          {
+            "key": "ref",
+            "type": "reference",
+            "required": true,
+            "referenceTypes": [
+              "Image",
+              "ImageArray",
+              "Sprite",
+              "DataItemText",
+              "DataItemImageNumber",
+              "DataItemImageValues",
+              "DataItemPointer",
+              "DataItemArcProgressBar",
+              "DataItemLineProgressBar",
+              "Slot",
+              "Widget"
+            ]
+          },
+          {
+            "key": "x",
+            "type": "number"
+          },
+          {
+            "key": "y",
+            "type": "number"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.miwatchfaceeditor/manifest-spec.schema.json",
+  "title": "manifest.xml 格式规范",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "format", "structure", "resources"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "format": { "type": "string", "minLength": 1 },
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root", "resources", "theme"],
+      "properties": {
+        "root": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tag", "fields", "children"],
+          "properties": {
+            "tag": { "$ref": "#/$defs/xmlName" },
+            "fields": { "$ref": "#/$defs/fields" },
+            "children": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/childCardinality" } }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tag", "resourceTypes"],
+          "properties": {
+            "tag": { "$ref": "#/$defs/xmlName" },
+            "resourceTypes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/xmlName" } }
+          }
+        },
+        "theme": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tag", "fields", "child"],
+          "properties": {
+            "tag": { "$ref": "#/$defs/xmlName" },
+            "fields": { "$ref": "#/$defs/fields" },
+            "child": { "$ref": "#/$defs/childDefinition" }
+          }
+        }
+      }
+    },
+    "resources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/resourceDefinition" } }
+  },
+  "$defs": {
+    "xmlName": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_.-]*$" },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "values"],
+      "properties": {
+        "key": { "$ref": "#/$defs/xmlName" },
+        "values": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "type"],
+      "properties": {
+        "key": { "$ref": "#/$defs/xmlName" },
+        "type": { "enum": ["string", "number", "boolean", "color", "reference", "textOrReference", "asset", "dataSource"] },
+        "required": { "type": "boolean" },
+        "enum": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" },
+        "pattern": { "type": "string" },
+        "patternErrorCode": { "type": "string", "minLength": 1 },
+        "patternErrorMessage": { "type": "string", "minLength": 1 },
+        "assetType": { "enum": ["image", "any"] },
+        "visibleWhen": { "$ref": "#/$defs/condition" },
+        "requiredWhen": { "$ref": "#/$defs/condition" },
+        "referenceTypes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/xmlName" } }
+      }
+    },
+    "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+    "childDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "fields"],
+      "properties": {
+        "tag": { "$ref": "#/$defs/xmlName" },
+        "fields": { "$ref": "#/$defs/fields" }
+      }
+    },
+    "childCardinality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tag", "minimum"],
+      "properties": {
+        "tag": { "$ref": "#/$defs/xmlName" },
+        "minimum": { "type": "integer", "minimum": 0 },
+        "maximum": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "resourceDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "fields", "defaults"],
+      "properties": {
+        "type": { "$ref": "#/$defs/xmlName" },
+        "fields": { "$ref": "#/$defs/fields" },
+        "defaults": { "type": "object", "additionalProperties": { "type": "string" } },
+        "child": { "$ref": "#/$defs/childDefinition" }
+      }
+    }
+  }
+}
