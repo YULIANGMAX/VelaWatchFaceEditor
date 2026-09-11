@@ -13,6 +13,10 @@
   <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License: GPL-3.0" />
 </p>
 
+<p align="center">
+  <img src="./screenshot.png" alt="Vela 表盘编辑器界面预览" width="100%" />
+</p>
+
 ---
 
 ## ⚠️ 已知问题 (Known Issues)
