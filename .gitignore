@@ -58,3 +58,8 @@ $RECYCLE.BIN/
 *.swp
 *~
 .cache/
+.release_stage/
+/*.zip
+
+# 本地发布打包脚本
+package-release.bat
