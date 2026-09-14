@@ -534,8 +534,7 @@ perpetualcalendar, amap, intercom, navigation, research, wechat
 - `name`：样式名称。
 - `bgColor`：纯色背景，避免使用整屏纯色图片。
 - `preview`：引用预览 `Image`。普通样式应提供；AOD 可以省略。
-
-官方相册表盘样本中还包含 `isPhotoAlbumWatchface` 属性（布尔值，用于声明动态相册背景机制）。
+- `isPhotoAlbumWatchface`：布尔值，系配合官方手机应用（小米运动健康）进行动态相册背景替换的系统级属性。作为非官方表盘编辑器，该属性统一写死固定为 `false`，在界面中默认隐藏，禁止设置为 `true`。
 
 ### 7.2 `Layout`
 

@@ -109,7 +109,8 @@ export const MANIFEST_EDITOR_METADATA = {
       "key": "isPhotoAlbumWatchface",
       "label": "照片相册表盘",
       "control": "boolean",
-      "previewSupport": "device"
+      "previewSupport": "device",
+      "hidden": true
     }
   ],
   "layoutFields": [
