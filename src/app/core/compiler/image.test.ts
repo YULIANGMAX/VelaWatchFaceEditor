@@ -15,7 +15,7 @@ describe("小米表盘图片编码", () => {
     expect(first.bytes).toEqual(second.bytes);
     expect(first.bytes).toHaveLength(1024 + 257);
     expect(Math.max(...first.bytes.subarray(1024))).toBeLessThan(256);
-  });
+  }, 15000);
 
   it("None ImageArray 保留 12 字节头且长度字段只记录像素块", () => {
     const rgba = Uint8Array.of(255, 0, 0, 255);

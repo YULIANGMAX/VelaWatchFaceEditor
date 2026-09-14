@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode
 import { createPortal } from "react-dom";
 import { ArrowUpRight, Calculator, ChevronDown, ChevronRight, File, Folder, RefreshCw, Search, X } from "lucide-react";
 import { RESOURCE_DEFINITION_MAP, type FieldDefinition } from "../editor/manifestEditorSchema";
-import { generateWatchfaceId, getDeviceProfile, isPreviewResource, normalizePath, refName, type WatchfaceProject, type WatchfaceResource } from "../core/model";
+import { generateWatchfaceId, getDeviceProfile, isPreviewResource, normalizePath, refName, type Attributes, type WatchfaceProject, type WatchfaceResource } from "../core/model";
 import { getManifestAttributeAllowedValues, isDataSourceSupported } from "../device-definition";
 import { DATA_SOURCE_LABELS } from "../device-definition/dataSourceLabels";
 import { useEditorStore } from "../store/editorStore";
@@ -71,6 +71,7 @@ interface FieldInputProps {
   target?: string;
   placeholder?: string;
   computableValue?: number | string;
+  resourceAttrs?: Attributes;
 }
 
 interface AssetPathSelectProps {
@@ -483,6 +484,7 @@ export function FieldInput({
   target,
   placeholder: customPlaceholder,
   computableValue,
+  resourceAttrs,
 }: FieldInputProps) {
   const navigateTo = useEditorStore((state) => state.navigateTo);
   disabled = disabled || Boolean(field.readOnly);
@@ -508,7 +510,40 @@ export function FieldInput({
 
   if (field.kind === "boolean") {
     const nextValue = value === "true" ? "false" : "true";
-    const nextValueBlocked = Boolean(allowedValues && !allowedValues.includes(nextValue));
+    let recolorBlocked = false;
+    let recolorBlockedReason: string | null = null;
+
+    if (nextValue === "true") {
+      const hasRecolorTable = Boolean(project.watchface.recolorTable?.trim());
+      if (field.key === "recolorEnable") {
+        if (!hasRecolorTable) {
+          recolorBlocked = true;
+          recolorBlockedReason = "需先在表盘配置 recolorTable";
+        }
+      } else if (field.key === "supportRecolor") {
+        if (!hasRecolorTable) {
+          recolorBlocked = true;
+          recolorBlockedReason = "需先在表盘配置 recolorTable";
+        } else if (!resourceAttrs?.ref?.trim()) {
+          recolorBlocked = true;
+          recolorBlockedReason = "需先指定引用素材";
+        } else {
+          const targetName = resourceAttrs.ref.replace(/^@/, "");
+          const targetResource = project.resources.find((r) => r.attrs.name === targetName);
+          if (!targetResource || targetResource.attrs.recolorEnable !== "true") {
+            recolorBlocked = true;
+            recolorBlockedReason = "引用素材未开启允许换色";
+          }
+        }
+      }
+    }
+
+    const nextValueBlocked = Boolean(allowedValues && !allowedValues.includes(nextValue)) || recolorBlocked;
+    const blockedReason = recolorBlocked
+      ? recolorBlockedReason
+      : allowedValues && !allowedValues.includes(nextValue)
+        ? `未验证值 ${nextValue}`
+        : null;
     return (
       <div
         className={`field-row${disabled || nextValueBlocked ? " is-disabled" : ""}`}
@@ -533,7 +568,7 @@ export function FieldInput({
           >
             <span />
           </button>
-          {nextValueBlocked ? <small className="field-error-inline">未验证值 {nextValue}</small> : null}
+          {blockedReason ? <small className="field-error-inline">{blockedReason}</small> : null}
         </div>
         {mousePos && helpText ? <MouseTooltip text={helpText} x={mousePos.x} y={mousePos.y} /> : null}
       </div>
@@ -657,9 +692,10 @@ export function FieldInput({
 
     if (field.kind === "colorGroup") {
       const colors = (project.watchface.colorGroupTable ?? "").split(",").map((entry) => entry.trim()).filter(Boolean);
+      const noColors = colors.length === 0;
       return (
-        <select id={id} value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
-          <option value="">所有配色方案</option>
+        <select id={id} value={value} disabled={disabled || noColors} onChange={(event) => onChange(event.target.value)}>
+          <option value="">{noColors ? "未配置颜色组表" : "所有配色方案"}</option>
           {value && !colors.includes(value) ? <option value={value}>{value}（不在颜色组表中）</option> : null}
           {colors.map((color) => <option key={color} value={color}>{color}</option>)}
         </select>

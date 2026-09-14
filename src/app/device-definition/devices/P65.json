@@ -271,27 +271,32 @@
                 },
                 "DataItemImageNumber": {
                     "supportRecolor": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 },
                 "DataItemImageValues": {
                     "supportRecolor": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 },
                 "DataItemPointer": {
                     "supportRecolor": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 },
                 "DataItemArcProgressBar": {
                     "supportRecolor": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 },
                 "DataItemLineProgressBar": {
                     "supportRecolor": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 }
             }

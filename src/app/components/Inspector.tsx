@@ -485,6 +485,7 @@ function Fields({
               value={attrs[field.key] ?? ""}
               project={project}
               target={target}
+              resourceAttrs={attrs}
               computableValue={computableValue}
               disabled={Boolean((resourceType && !isDeviceResourceEditable(project.device, resourceType)) || (target && !isDeviceAttributeEditable(project.device, target, field.key)))}
               onChange={(value) => onChange(field.key, value)}
@@ -1353,7 +1354,6 @@ export function Inspector() {
             icon={<Settings size={15} className="card-icon" />}
           >
             <Fields fields={commonFields} attrs={resource.attrs} target={resource.type} resourceType={resource.type} resource={resource} onChange={changeResource} />
-            <small className="field-note">空值表示使用编译器默认值。</small>
           </InspectorCard>
         ) : null}
 

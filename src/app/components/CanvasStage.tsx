@@ -183,11 +183,11 @@ function areLayoutPropsEqual(prev: LayoutNodeProps, next: LayoutNodeProps): bool
     if (prev.preview.elapsedMs !== next.preview.elapsedMs) return false;
   }
 
-  // 资源定义本身是否变更
+  // 资源定义或全局配置是否变更
   if (prev.project !== next.project) {
-    const prevRes = findResource(prev.project, refName(prev.layout.attrs.ref), prev.preview.color);
-    const nextRes = findResource(next.project, refName(next.layout.attrs.ref), next.preview.color);
-    if (prevRes !== nextRes) return false;
+    if (prev.project.resources !== next.project.resources) return false;
+    if (prev.project.watchface !== next.project.watchface) return false;
+    if (prev.project.assets !== next.project.assets) return false;
   }
 
   return true;

@@ -239,6 +239,22 @@ function validateResource(
     if (target && resource.children.length > target.children.length) diagnostics.push(item("error", "too-many-params", "Param 数量不能多于图片数量", location));
   }
 
+  if (resource.attrs.supportRecolor === "true") {
+    if (!project.watchface.recolorTable?.trim()) {
+      diagnostics.push(item("error", "missing-recolor-table", "启用 supportRecolor 需要在 Watchface 中定义 recolorTable", location));
+    }
+    const target = resourcesOfTypes(resourcesByName, resource.attrs.ref, ["Image", "ImageArray"])[0];
+    if (target && target.attrs.recolorEnable !== "true") {
+      diagnostics.push(item("warning", "recolor-target-not-enabled", `引用资源 ${resource.attrs.ref} 未开启允许换色（recolorEnable="true"），跟随换色可能无法生效`, location));
+    }
+  }
+
+  if ((resource.type === "Image" || resource.type === "ImageArray") && resource.attrs.recolorEnable === "true") {
+    if (!project.watchface.recolorTable?.trim()) {
+      diagnostics.push(item("error", "missing-recolor-table", `资源 ${resource.attrs.name} 开启 recolorEnable 需要在 Watchface 中定义 recolorTable`, location));
+    }
+  }
+
   return diagnostics;
 }
 

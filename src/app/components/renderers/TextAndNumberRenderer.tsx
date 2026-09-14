@@ -233,7 +233,10 @@ export function ImageNumberView({
               token === "." && decimalOffset !== 0 ? { marginLeft: `${decimalOffset}px` } : undefined;
             return asset ? (
               <span key={`${token}-${index}`} style={style}>
-                <Bitmap asset={asset} color={recolorFor(project, array, preview)} />
+                <Bitmap
+                  asset={asset}
+                  color={resource.attrs.supportRecolor === "true" ? recolorFor(project, array, preview) : undefined}
+                />
               </span>
             ) : (
               <span className="number-fallback" key={`${token}-${index}`} style={style}>
@@ -277,7 +280,7 @@ export function ImageNumberView({
           token === "." && decimalOffset !== 0 ? { marginLeft: `${decimalOffset}px` } : undefined;
         return asset ? (
           <span key={`${token}-${index}`} style={style}>
-            <Bitmap asset={asset} color={recolorFor(project, array, preview)} />
+            <Bitmap asset={asset} color={resource.attrs.supportRecolor === "true" ? recolorFor(project, array, preview) : undefined} />
           </span>
         ) : (
           <span className="number-fallback" key={`${token}-${index}`} style={style}>
@@ -309,5 +312,5 @@ export function ImageValuesView({
     const threshold = Number(child.attrs.value);
     if (Number.isFinite(threshold) && value >= threshold) index = childIndex;
   });
-  return <ArrayFrame project={project} resource={array} index={index} preview={preview} />;
+  return <ArrayFrame project={project} resource={array} index={index} preview={preview} ignoreRecolor={resource.attrs.supportRecolor !== "true"} />;
 }

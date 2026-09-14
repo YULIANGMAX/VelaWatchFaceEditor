@@ -159,7 +159,7 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "recolorEnable",
-          "label": "动态换色",
+          "label": "允许换色",
           "control": "boolean"
         },
         {
@@ -192,7 +192,7 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "recolorEnable",
-          "label": "动态换色",
+          "label": "允许换色",
           "control": "boolean"
         },
         {
@@ -473,11 +473,11 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "supportRecolor",
-          "label": "支持动态换色",
+          "label": "跟随换色",
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "hidden": true
+          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -563,11 +563,11 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "supportRecolor",
-          "label": "支持动态换色",
+          "label": "跟随换色",
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "hidden": true
+          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -629,11 +629,11 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "supportRecolor",
-          "label": "支持动态换色",
+          "label": "跟随换色",
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "hidden": true
+          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -725,11 +725,11 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "supportRecolor",
-          "label": "支持动态换色",
+          "label": "跟随换色",
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "hidden": true
+          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -853,10 +853,11 @@ export const MANIFEST_EDITOR_METADATA = {
         },
         {
           "key": "supportRecolor",
-          "label": "支持动态换色",
+          "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "hidden": true
+          "previewSupport": "device",
+          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",

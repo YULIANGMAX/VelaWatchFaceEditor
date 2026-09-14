@@ -27,7 +27,7 @@ export function PointerRenderer({ project, resource, now, preview }: PointerRend
         transformOrigin: `${numberAttr(resource, "pivotX")}px ${numberAttr(resource, "pivotY")}px`,
       }}
     >
-      <ImageView project={project} resource={image} preview={preview} />
+      <ImageView project={project} resource={image} preview={preview} ignoreRecolor={resource.attrs.supportRecolor !== "true"} />
     </div>
   );
 }

@@ -109,9 +109,9 @@ export function ImageView({ project, resource, preview, ignoreRecolor = false }:
   return <Bitmap asset={asset} color={ignoreRecolor ? undefined : recolorFor(project, resource, preview)} />;
 }
 
-export function ArrayFrame({ project, resource, index, preview }: { project: WatchfaceProject; resource: WatchfaceResource; index: number; preview: WatchfacePreviewContext }) {
+export function ArrayFrame({ project, resource, index, preview, ignoreRecolor = false }: { project: WatchfaceProject; resource: WatchfaceResource; index: number; preview: WatchfacePreviewContext; ignoreRecolor?: boolean }) {
   const frame = resource.children[index] ?? resource.children[0];
   const asset = imageAsset(project, frame?.attrs.src);
   if (!asset) return <Placeholder label={frame?.attrs.src || "空图片序列"} />;
-  return <Bitmap asset={asset} color={recolorFor(project, resource, preview)} />;
+  return <Bitmap asset={asset} color={ignoreRecolor ? undefined : recolorFor(project, resource, preview)} />;
 }

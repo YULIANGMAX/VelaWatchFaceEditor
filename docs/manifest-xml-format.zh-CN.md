@@ -120,7 +120,7 @@ editable="true"
   - `RGBA32`：32 位 RGBA，支持透明度。
   - `RGB565A8`：RGB565 加 8 位透明度。
   - `indexed8`：8 位调色板索引，编码结果最多 256 种颜色；源图片超过 256 种精确颜色时由编译器量化，调色板颜色可以包含透明度。
-- `recolorEnable`：是否允许动态换色，可省略，默认 `false`。
+- `recolorEnable`：允许换色（是否允许素材参与动态换色），可省略，默认 `false`。
 - `colorGroup`：为同名资源指定其所属的配色方案。未设置且资源名唯一时，该资源可用于所有配色方案。使用 `colorGroupTable` 时，第一种颜色必须有明确对应的资源，否则编译会失败。
 
 历史样例中曾出现过 `argb8888`，当前规范统一使用 `RGBA32`、`RGB565A8` 或 `indexed8`。
@@ -215,7 +215,11 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 - `parameter`：刷新周期，单位为毫秒；范围是 `30` 至 `1000`，默认 `1000`。
 - `rotation`：旋转角度。
 
-小米官方样本还在 `DataItemImageNumber`、`DataItemImageValues`、`DataItemPointer`、`DataItemArcProgressBar` 上使用 `supportRecolor`。纯格式规范已纳入该属性；当前 5 个小米官方样本只证明 P65 的 `false` 可编译，`true` 仍可无损保存但会被设备能力阻止构建。
+- `supportRecolor`：跟随换色（组件是否跟随全局换色），布尔值（默认为 `false`）。用于 `DataItemImageNumber`、`DataItemImageValues`、`DataItemPointer`、`DataItemArcProgressBar`、`DataItemLineProgressBar`。
+  - **三阶联动机制**：
+    1. **全局色表层**：根节点 `<Watchface>` 必须配置 `recolorTable` 动态颜色表（官方导出样本中各 `<Theme>` 亦机械冗余复制此串，但语义与底层全由全局统领）；
+    2. **素材资源层**：组件通过 `ref` 引用的 `<Image>` 或 `<ImageArray>` 必须显式开启「允许换色」（`recolorEnable="true"`，通常采用 `indexed8` 格式或单色灰度通道）；
+    3. **数据开关层**：唯有同时满足全局具备 `recolorTable` 且引用素材资源开启「允许换色」（`recolorEnable="true"`）时，数据资源方可将「跟随换色」（`supportRecolor`）设为 `true`，设备端渲染时将图片像素颜色与用户选定颜色相乘实现变色。若引用素材资源未开启「允许换色」，即便表盘具备动态颜色表，该组件亦必须设为 `false`。
 
 当 `align="left"` 时，坐标锚点是组件左上角；`right` 时是右上角；旋转同样围绕该锚点进行。
 
