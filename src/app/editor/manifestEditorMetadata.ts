@@ -1047,8 +1047,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "key": "align_content",
           "label": "多行对齐",
           "control": "select",
-          "section": "flex",
-          "previewSupport": "partial"
+          "section": "flex"
         },
         {
           "key": "align_items",

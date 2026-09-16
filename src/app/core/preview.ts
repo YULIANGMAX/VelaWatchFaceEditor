@@ -23,22 +23,128 @@ export function widgetRowPositions(
   items: WidgetRowItem[],
 ): number[] {
   if (items.length === 0) return [];
-  const flowWidths = items.map((item) => item.align === "center"
-    ? item.width - item.unitWidth
-    : item.width);
-  const allCentered = items.length > 1
-    && items.every((item) => item.align === "center")
-    && items.every((item) => item.width === items[0].width);
-  const totalWidth = allCentered
-    ? Math.max(...items.map((item) => item.width))
-    : flowWidths.reduce((total, width) => total + width, 0) + Math.max(0, items.length - 1) * gap;
-  let cursor = justifyContent === "center" ? (widgetWidth - totalWidth) / 2 : 0;
-  return items.map((item) => {
-    if (item.align === "center") cursor -= item.width / 2;
-    else if (item.align === "right") cursor -= item.width;
-    const position = cursor;
-    cursor += item.width + gap;
+  let rawCursor = 0;
+  const rawPositions = items.map((item) => {
+    if (item.align === "center") rawCursor -= item.width / 2;
+    else if (item.align === "right") rawCursor -= item.width;
+    const position = rawCursor;
+    rawCursor += item.width + gap;
     return position;
+  });
+
+  const contentRight = Math.max(...rawPositions.map((pos, index) => pos + items[index].width));
+
+  let offset = 0;
+  if (justifyContent === "center") {
+    offset = (widgetWidth - contentRight) / 2;
+  } else if (justifyContent === "flex-end") {
+    offset = widgetWidth - contentRight;
+  }
+
+  return rawPositions.map((pos) => pos + offset);
+}
+
+export function widgetVerticalPosition(
+  align: string | undefined,
+  widgetHeight: number,
+  itemHeight: number,
+): number {
+  if (align === "center") return (widgetHeight - itemHeight) / 2;
+  if (align === "flex-end") return widgetHeight - itemHeight;
+  return 0;
+}
+
+export interface WidgetColumnLayout {
+  x: number;
+  y: number;
+}
+
+export function widgetColumnPositions(
+  widgetWidth: number,
+  widgetHeight: number,
+  justifyContent: string | undefined,
+  alignContent: string | undefined,
+  alignItems: string | undefined,
+  gap: number,
+  items: Array<{ align: string | undefined; width: number; height: number }>,
+): WidgetColumnLayout[] {
+  if (items.length === 0) return [];
+
+  let cursorY = 0;
+  const rawTops = items.map((item) => {
+    const top = cursorY;
+    cursorY += item.height + gap;
+    return top;
+  });
+  const lastIndex = items.length - 1;
+  const contentBottom = rawTops[lastIndex] + items[lastIndex].height;
+
+  let offsetY = 0;
+  if (justifyContent === "center") {
+    offsetY = (widgetHeight - contentBottom) / 2;
+  } else if (justifyContent === "flex-end") {
+    offsetY = widgetHeight - contentBottom;
+  }
+
+  const hasRightAligned = items.some((item) => item.align === "right");
+  const maxItemWidth = Math.max(...items.map((item) => item.width));
+  const freeSpaceX = widgetWidth - maxItemWidth;
+
+  let offsetX = 0;
+  if (alignItems === "center") {
+    offsetX = freeSpaceX / 2;
+  } else if (alignItems === "flex-end") {
+    offsetX = freeSpaceX;
+  }
+
+  const anchorX = hasRightAligned ? maxItemWidth + offsetX : offsetX;
+
+  let contentShiftX = 0;
+  if (hasRightAligned) {
+    if (alignContent === "flex-start") {
+      contentShiftX = -maxItemWidth;
+    } else if (alignContent === "center") {
+      contentShiftX = -maxItemWidth / 2;
+    } else if (alignContent === "flex-end") {
+      contentShiftX = 0;
+    } else {
+      contentShiftX = -maxItemWidth;
+    }
+  } else {
+    if (alignContent === "center") {
+      contentShiftX = (widgetWidth - maxItemWidth) / 2;
+    } else if (alignContent === "flex-end") {
+      contentShiftX = widgetWidth - maxItemWidth;
+    }
+  }
+
+  return items.map((item, index) => {
+    const y = rawTops[index] + offsetY;
+    let x = 0;
+    if (hasRightAligned) {
+      if (item.align === "right") {
+        x = anchorX - item.width;
+      } else {
+        if (alignItems === "flex-start") {
+          x = anchorX;
+        } else if (alignItems === "center") {
+          x = anchorX - item.width / 2;
+        } else if (alignItems === "flex-end") {
+          x = anchorX - item.width;
+        } else {
+          x = anchorX;
+        }
+      }
+    } else {
+      if (alignItems === "center") {
+        x = offsetX + (maxItemWidth - item.width) / 2;
+      } else if (alignItems === "flex-end") {
+        x = offsetX + (maxItemWidth - item.width);
+      } else {
+        x = offsetX;
+      }
+    }
+    return { x: x + contentShiftX, y };
   });
 }
 

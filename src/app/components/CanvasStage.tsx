@@ -26,7 +26,6 @@ import { computeSmartGuides, type RectBox } from "../core/smartGuides";
 import { getDeviceDefinition } from "../device-definition";
 import { useEditorStore, type GridMode } from "../store/editorStore";
 import { ResourceRenderer } from "./ResourceRenderer";
-import { findResource } from "./renderers/common";
 import { ContextMenu, type ContextMenuEntry } from "./ContextMenu";
 
 export function clampToolbarPosition(

@@ -265,8 +265,11 @@ function flexBits(resource: WatchfaceResource): number | undefined {
   if (!resource.attrs.flex_direction) return undefined;
   let bits = resource.attrs.flex_direction === "column" ? 1 : 0;
   if (resource.attrs.justify_content === "center") bits |= 0x04;
+  else if (resource.attrs.justify_content === "flex-end") bits |= 0x08;
   if (resource.attrs.align_content === "center") bits |= 0x20;
+  else if (resource.attrs.align_content === "flex-end") bits |= 0x40;
   if (resource.attrs.align_items === "center") bits |= 0x100;
+  else if (resource.attrs.align_items === "flex-end") bits |= 0x200;
   const gap = numberValue(resource.attrs.gap);
   bits |= gap < 0 ? 0x100000 | ((Math.abs(gap) * 0x800) & 0xf800) : (gap * 0x800) & 0xf800;
   return bits;

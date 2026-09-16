@@ -505,9 +505,33 @@ perpetualcalendar, amap, intercom, navigation, research, wechat
 - `editBox`：可选，`Slot` 编辑页面中的可编辑区域框线图片（通常建议约为实际组件尺寸的 70%）。
 - `preview`：可选，`Slot` 编辑页面中的组件预览缩略图（通常建议约为实际组件尺寸的 70%）。
 - `args`：可选，启动应用时的参数；用于 `jumpApp="jsApplication"` 或 `jumpApp="luaApplication"` 时可引用 `File`。
-- `flex_direction`：启用自动布局，值为 `row` 或 `column`。
-- `justify_content`、`align_content`、`align_items`：已知值为 `flex-start`、`center`、`flex-end`，精确行为仍待研究。
-- `gap`：自动布局间距，可为负值；具体布局行为仍待研究。
+- `flex_direction`：启用自动布局，值为 `row`（横向排布）或 `column`（纵向排布）。
+- `justify_content`：主轴方向对齐方式。
+  - **横向排布（`row`）**：控制水平对齐。支持：
+    - `flex-start`：起点对齐（默认，无额外位移偏量；首项若指定 `align="right"` 等负向锚点会自然向左溢出）；
+    - `center`：余量居中（以可用总余量 $\text{free\_space} = w - \text{contentRight}$ 为基准，分摊 50% 余量，偏移量为 $\text{free\_space} / 2$）；
+    - `flex-end`：末尾对齐（分摊 100% 余量，偏移量为 $\text{free\_space} = w - \text{contentRight}$，子项末位右边界紧贴容器右边缘）。
+  - **纵向排布（`column`）**：控制垂直对齐。以子项高度总和（含 gap）$\text{contentBottom}$ 为基准：
+    - `flex-start`：顶端对齐（$y = 0$）；
+    - `center`：纵向居中（偏移量为 $(h - \text{contentBottom}) / 2$）；
+    - `flex-end`：底端对齐（偏移量为 $h - \text{contentBottom}$，最底项底边紧扣容器底边）。
+  - 底层二进制编码采用 3-bit 步长枚举掩码：`flex-start` 为 `0`，`center` 为 `0x04`（`1 << 2`），`flex-end` 为 `0x08`（`2 << 2`）。
+- `align_content`：交叉轴对齐方式。
+  - **横向排布（`row`）**：实际控制垂直方向对齐：
+    - `flex-start`：顶端对齐（$y = 0$）；
+    - `center`：居中对齐（以各子项图片自身中线与容器纵向中线重合对齐，$y = (h - \text{itemHeight}) / 2$）；
+    - `flex-end`：底端对齐（各子项图片底边紧贴容器底边，$y = h - \text{itemHeight}$）。
+  - **纵向排布（`column`）**：实际控制水平方向（X 轴）全局定位基准线台阶。在穿戴端实测：
+    - `flex-start`：水平基线位于容器左界（$X=0$）。当子项包含 `align="right"` 时，子项以左界为右锚点向左溢出，相对于 `flex-end` 产生 $-\text{maxItemWidth}$（子项最大宽度，如 $68\text{px}$）的左移偏量；
+    - `center`：水平基线相对于 `flex-end` 产生 $-\text{maxItemWidth}/2$（如 $-34\text{px}$）的左移偏量；
+    - `flex-end`：水平基线使内容整体完全收纳在容器右侧内部，偏移量为 $0$。
+    - 三档呈现每阶差值为 $\text{maxItemWidth}/2$（如 $34\text{px}$）的等差台阶式位移（真机组件 19 刚好溢出左边界露出半个 2 与 %，组件 22、25 精确契合）。
+  - 底层二进制编码采用 3-bit 步长枚举掩码：`flex-start` 为 `0`，`center` 为 `0x20`（`1 << 5`），`flex-end` 为 `0x40`（`2 << 5`）。
+- `align_items`：交叉轴单行/子项水平基准线微调对齐。
+  - 在 `flex_direction="row"` 横向单行排布下，穿戴端固件对此属性完全忽略，设置任何值均等同于 `flex-start`（顶端 $y=0$），横向垂直对齐完全由 `align_content` 独占控制。
+  - 在 `flex_direction="column"` 纵向列排布下，穿戴端固件以此属性控制子项在上述 `align_content` 确定的大基线内部的相对锚定。实测以横向总余量 $\text{freeSpaceX} = w - \max(\text{width})$ 确定主导锚线 $\text{anchorX} = \max(\text{width}) + \text{offsetX}$（其中 `flex-start` 时 $\text{offsetX}=0$，`center` 时 $\text{offsetX}=\text{freeSpaceX}/2$，`flex-end` 时 $\text{offsetX}=\text{freeSpaceX}$）。`align="right"` 项左移自身宽度贴线，普通项按 `flex-start` 左贴线、`center` 居中切线、`flex-end` 右贴线分布。
+  - 底层二进制编码掩码为：`flex-start` 为 `0`，`center` 为 `0x100`（`1 << 8`），`flex-end` 为 `0x200`（`2 << 8`）。
+- `gap`：自动布局间距，可为负值；编码公式为 `((Math.abs(gap) * 0x800) & 0xf800)`，负值附带符号位 `0x100000`。
 
 子元素 `Item` 通过 `ref` 引用资源。可以在每个 `Item` 上用 `x`、`y` 显式定位，也可以依赖上述 flex 属性自动布局。
 

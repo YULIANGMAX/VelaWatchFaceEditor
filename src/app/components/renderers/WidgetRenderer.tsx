@@ -3,7 +3,9 @@ import { measureResource } from "../../core/measure";
 import {
   absoluteItemAnchorTransform,
   widgetChildAnchorTransform,
+  widgetColumnPositions,
   widgetRowPositions,
+  widgetVerticalPosition,
 } from "../../core/preview";
 import { refName, type WatchfacePreviewContext, type WatchfaceProject, type WatchfaceResource } from "../../core/model";
 import { findResource, numberAttr, resourceVisibleInPreview } from "./common";
@@ -16,16 +18,6 @@ interface WidgetRendererProps {
   preview: WatchfacePreviewContext;
   depth: number;
   renderResource: (resourceName: string, nextDepth: number) => ReactNode;
-}
-
-function widgetVerticalPosition(
-  align: string | undefined,
-  widgetHeight: number,
-  itemHeight: number,
-): number {
-  if (align === "center") return (widgetHeight - itemHeight) / 2;
-  if (align === "flex-end") return widgetHeight - itemHeight;
-  return 0;
 }
 
 function WidgetItem({
@@ -102,6 +94,7 @@ export function WidgetRenderer({
     ({ target }) => !target || resourceVisibleInPreview(target, now, preview),
   );
   const isRowCursorLayout = flex === "row" && visibleChildren.length > 0;
+  const isColumnCursorLayout = flex === "column" && visibleChildren.length > 0;
   const widgetWidth = numberAttr(resource, "w");
   const widgetHeight = numberAttr(resource, "h");
   const gap = numberAttr(resource, "gap");
@@ -121,11 +114,27 @@ export function WidgetRenderer({
       )
     : undefined;
 
+  const columnPositions = isColumnCursorLayout
+    ? widgetColumnPositions(
+        widgetWidth,
+        widgetHeight,
+        resource.attrs.justify_content,
+        resource.attrs.align_content,
+        resource.attrs.align_items,
+        gap,
+        visibleChildren.map(({ target, dimensions }) => ({
+          align: target?.attrs.align,
+          width: dimensions.width,
+          height: dimensions.height,
+        })),
+      )
+    : undefined;
+
   const style: CSSProperties = {
     position: "relative",
     width: resource.attrs.w ? `${widgetWidth}px` : undefined,
     height: resource.attrs.h ? `${widgetHeight}px` : undefined,
-    display: isRowCursorLayout ? "block" : flex ? "flex" : "block",
+    display: isRowCursorLayout || isColumnCursorLayout ? "block" : flex ? "flex" : "block",
     flexDirection: flex === "column" ? "column" : "row",
     justifyContent: resource.attrs.justify_content as CSSProperties["justifyContent"],
     alignItems: resource.attrs.align_items as CSSProperties["alignItems"],
@@ -141,11 +150,23 @@ export function WidgetRenderer({
           project={project}
           child={child}
           flex={flex}
-          cursorPosition={cursorPositions?.[index]}
+          cursorPosition={
+            isRowCursorLayout
+              ? cursorPositions?.[index]
+              : isColumnCursorLayout
+                ? columnPositions?.[index]?.x
+                : undefined
+          }
           cursorTop={
-            cursorPositions
-              ? widgetVerticalPosition(resource.attrs.align_items, widgetHeight, dimensions.height)
-              : undefined
+            isRowCursorLayout
+              ? widgetVerticalPosition(
+                  resource.attrs.align_content,
+                  widgetHeight,
+                  dimensions.height,
+                )
+              : isColumnCursorLayout
+                ? columnPositions?.[index]?.y
+                : undefined
           }
           preview={preview}
           depth={depth}
