@@ -41,7 +41,8 @@ export const MANIFEST_EDITOR_METADATA = {
     {
       "key": "SKU",
       "label": "SKU 模式",
-      "control": "boolean"
+      "control": "boolean",
+      "hidden": true
     },
     {
       "key": "compressMethod",
@@ -51,12 +52,14 @@ export const MANIFEST_EDITOR_METADATA = {
     {
       "key": "advanced",
       "label": "高级表盘",
-      "control": "boolean"
+      "control": "boolean",
+      "hidden": true
     },
     {
       "key": "interactive",
       "label": "交互表盘",
-      "control": "boolean"
+      "control": "boolean",
+      "hidden": true
     },
     {
       "key": "powerConsumptionLevel",
@@ -66,7 +69,8 @@ export const MANIFEST_EDITOR_METADATA = {
     {
       "key": "support_literal",
       "label": "支持字面量",
-      "control": "boolean"
+      "control": "boolean",
+      "hidden": true
     },
     {
       "key": "editable",

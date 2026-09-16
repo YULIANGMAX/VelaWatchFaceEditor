@@ -91,9 +91,9 @@ support_literal="false"
 editable="true"
 ```
 
-这些属性体现了小米官方生产环境的完备扩展规范，在未有具体设备二进制支持前，应严格按设备定义校验。其中：
 - `powerConsumptionLevel`：功耗等级，系说明性质的标称参数（可选 `1` 至 `5`），由创作者自决选择并在表盘信息中展示，与表盘运行时的实际物理功耗和固件硬件调度无直接关联。
 - `editable`：是否允许设备端编辑，布尔值（默认为 `false`）。控制是否允许用户在手表上直接编辑表盘（如长按进入自定义配置界面、更换槽位 Slot 中显示的组件等）；未显式启用或设为 `false` 则锁定表盘，禁止在设备端修改。
+- `SKU`、`advanced`、`interactive`、`support_literal`：真机实测表盘呈现不受此四项属性影响。在尚未分析出明确作用之前，全设备全量规范一律限死为 `false`，编辑器界面不予呈现；若在 XML 中配置为非 `false`，校验器与编译器将严格阻止构建。
 
 ## 4. 通用资源
 
@@ -485,7 +485,7 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 属性：
 
 - `widgetName`：在 `Slot` 编辑菜单中显示的名称，可以是文本，也可以引用 `Translation`。
-- `groupType`：文档中唯一已知值为 `general`，目前被忽略。
+- `groupType`：分组类型，官方规范中固定为 `general`（通用组件），在底层二进制 `resource.bin` 中不分配字节，无需修改。
 - `jumpApp`：把组件声明为点击热区以启动系统应用。常见支持的应用标识包括：
 
 ```text

@@ -34,7 +34,10 @@
         },
         {
           "key": "SKU",
-          "type": "boolean"
+          "type": "boolean",
+          "enum": [
+            "false"
+          ]
         },
         {
           "key": "compressMethod",
@@ -46,11 +49,17 @@
         },
         {
           "key": "advanced",
-          "type": "boolean"
+          "type": "boolean",
+          "enum": [
+            "false"
+          ]
         },
         {
           "key": "interactive",
-          "type": "boolean"
+          "type": "boolean",
+          "enum": [
+            "false"
+          ]
         },
         {
           "key": "powerConsumptionLevel",
@@ -65,7 +74,10 @@
         },
         {
           "key": "support_literal",
-          "type": "boolean"
+          "type": "boolean",
+          "enum": [
+            "false"
+          ]
         },
         {
           "key": "editable",

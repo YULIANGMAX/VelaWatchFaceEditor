@@ -22,7 +22,11 @@
                     "id",
                     "name",
                     "recolorTable",
-                    "colorGroupTable"
+                    "colorGroupTable",
+                    "SKU",
+                    "advanced",
+                    "interactive",
+                    "support_literal"
                 ],
                 "Theme": [
                     "type",
@@ -215,7 +219,22 @@
                 ]
             },
             "exclude": {},
-            "values": {}
+            "values": {
+                "Watchface": {
+                    "SKU": [
+                        "false"
+                    ],
+                    "advanced": [
+                        "false"
+                    ],
+                    "interactive": [
+                        "false"
+                    ],
+                    "support_literal": [
+                        "false"
+                    ]
+                }
+            }
         }
     },
     "binary": {
