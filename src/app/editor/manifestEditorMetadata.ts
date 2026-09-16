@@ -947,7 +947,7 @@ export const MANIFEST_EDITOR_METADATA = {
       "type": "Slot",
       "label": "组件槽位",
       "group": "组合",
-      "description": "用户可选组件或系统组件槽位",
+      "description": "用户可选微件或可切换位置的组件槽位",
       "fields": [
         {
           "key": "name",
@@ -957,14 +957,14 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "type",
           "label": "槽位类型",
-          "control": "select"
+          "control": "select",
+          "hidden": true
         },
         {
-          "key": "appWidgetID",
-          "label": "系统组件 ID",
-          "control": "select",
-          "section": "system",
-          "previewSupport": "device"
+          "key": "movable",
+          "label": "支持移动",
+          "control": "boolean",
+          "help": "在手表端自定义界面中是否允许用户移动该槽位的位置"
         }
       ],
       "child": {
@@ -976,7 +976,24 @@ export const MANIFEST_EDITOR_METADATA = {
             "control": "reference"
           }
         ]
-      }
+      },
+      "extraChildren": [
+        {
+          "tag": "Position",
+          "fields": [
+            {
+              "key": "x",
+              "label": "X 坐标",
+              "control": "number"
+            },
+            {
+              "key": "y",
+              "label": "Y 坐标",
+              "control": "number"
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "Widget",

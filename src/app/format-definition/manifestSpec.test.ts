@@ -95,7 +95,7 @@ describe("manifest.xml 声明式格式规范", () => {
       "conflicting-color-tables",
       "missing-text-source",
       "invalid-decimal-digits",
-      "slot-children-not-applicable",
+      "empty-widget-slot",
     ]));
   });
 });

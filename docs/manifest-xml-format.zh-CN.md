@@ -435,22 +435,22 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 
 ### 6.1 `Slot`
 
-`Slot` 表示可配置或由系统提供的组件槽位。
+`Slot` 表示可配置的组件槽位。在手表端长按表盘进入自定义编辑界面时，槽位允许用户在多个微件（`Widget`）间切换，或在多个预设坐标（`Position`）间移动位置。
 
-外部组件示例：
+#### 属性说明
 
-```xml
-<Slot
-    name="heartRateSlot"
-    type="appWidget"
-    appWidgetID="heartRateRectangleDark"/>
-```
+- `name`：槽位名称（必填，如 `Slot1`）。
+- `type`：槽位类型，**固定为 `"widget"`**。
+- `movable`：是否支持移动位置（选填，`"true"` 或 `"false"`，默认 `"false"`）。为 `"true"` 时，允许用户在手表端自定义界面中把该槽位移动到其他预设坐标。
 
-- `type="appWidget"`：系统外部组件。
-- `type="dualTime"`：双时区时间组件。
-- `appWidgetID`：系统微件标识，如 `heartRateRectangleDark`（心率图表卡片）和 `fitnessRectangleDarkStep`（活力步数卡片）等。
+#### 子元素说明
 
-用户可选组件示例：
+- `<Item ref="@Widget..." />`：候选微件列表（至少 1 个）。每个 `Item` 必须引用 `Widget`，不能直接引用 `DataItem*`。用户可在手表的编辑界面中选择其中一个微件呈现。
+- `<Position x="..." y="..." />`：候选坐标列表（仅在 `movable="true"` 时出现）。定义该槽位支持切换落脚的多处预设坐标。
+
+#### 规范示例
+
+常规多选微件槽位（不可移动）：
 
 ```xml
 <Slot name="Slot1" type="widget">
@@ -461,7 +461,15 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 </Slot>
 ```
 
-`type="widget"` 时，每个 `Item` 必须引用 `Widget`，不能直接引用 `DataItem*`。设备的编辑界面允许用户从列表中选择一个组件显示。
+支持移动位置的槽位：
+
+```xml
+<Slot name="Slot1" type="widget" movable="true">
+    <Item ref="@Widget2"/>
+    <Position x="72" y="199"/>
+    <Position x="72" y="334"/>
+</Slot>
+```
 
 ### 6.2 `Widget`
 

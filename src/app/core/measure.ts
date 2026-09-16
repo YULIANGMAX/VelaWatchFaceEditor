@@ -154,7 +154,8 @@ function measureResourceRaw(
       }
 
       case "Slot": {
-        const target = resource.children[0] ? findResource(project, refName(resource.children[0].attrs.ref), color) : undefined;
+        const item = resource.children.find((child) => child.attrs.ref);
+        const target = item ? findResource(project, refName(item.attrs.ref), color) : undefined;
         return target ? measureResource(project, target, color, visited) : { width: 0, height: 0 };
       }
 

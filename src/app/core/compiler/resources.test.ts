@@ -3,22 +3,45 @@ import { getDeviceDefinition } from "../../device-definition";
 import type { WatchfaceResource } from "../model";
 import { encodeDataResource, encodeSlot, encodeWidget } from "./resources";
 
-function appSlot(appWidgetID: string): WatchfaceResource {
-  return {
-    id: appWidgetID,
-    type: "Slot",
-    attrs: { name: appWidgetID, type: "appWidget", appWidgetID },
-    children: [],
-  };
-}
-
 describe("Slot 二进制编码", () => {
-  it("使用确定性的 appWidget 载荷", () => {
-    const resolve = () => ({ index: 0, type: 0 });
-    expect(Array.from(encodeSlot(appSlot("heartRateRectangleDark"), resolve)))
-      .toEqual([0, 0, 0x30, 0, 0x92, 0x10, 0, 0, 0, 0, 0, 0, 0, 0]);
-    expect(Array.from(encodeSlot(appSlot("fitnessRectangleDarkStep"), resolve)))
-      .toEqual([0, 0, 0x30, 0, 0x92, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0]);
+  it("编码标准 widget 槽位", () => {
+    const slot: WatchfaceResource = {
+      id: "slot1",
+      type: "Slot",
+      attrs: { name: "Slot1", type: "widget" },
+      children: [
+        { id: "i1", tag: "Item", attrs: { ref: "@w1" } },
+        { id: "i2", tag: "Item", attrs: { ref: "@w2" } },
+      ],
+    };
+    const resolve = (ref: string | undefined) => (ref === "@w1" ? { index: 1, type: 9 } : { index: 2, type: 9 });
+    const bytes = encodeSlot(slot, resolve);
+    expect(Array.from(bytes)).toEqual([
+      2, 0, 0, 0,
+      1, 0, 0, 9,
+      2, 0, 0, 9,
+    ]);
+  });
+
+  it("编码可移动槽位（movable=true）与候选预设坐标（Position）", () => {
+    const slot: WatchfaceResource = {
+      id: "slot1",
+      type: "Slot",
+      attrs: { name: "Slot1", type: "widget", movable: "true" },
+      children: [
+        { id: "i1", tag: "Item", attrs: { ref: "@w2" } },
+        { id: "p1", tag: "Position", attrs: { x: "72", y: "199" } },
+        { id: "p2", tag: "Position", attrs: { x: "72", y: "334" } },
+      ],
+    };
+    const resolve = () => ({ index: 1, type: 9 });
+    const bytes = encodeSlot(slot, resolve);
+    expect(Array.from(bytes)).toEqual([
+      0x01, 0x00, 0x01, 0x02,
+      0x01, 0x00, 0x00, 0x09,
+      0x48, 0x1c, 0x03, 0x00,
+      0x48, 0x38, 0x05, 0x00,
+    ]);
   });
 });
 

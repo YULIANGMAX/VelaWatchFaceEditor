@@ -89,20 +89,9 @@
       "kind": "childCount",
       "target": { "scope": "resource", "resourceTypes": ["Slot"] },
       "minimum": 1,
-      "when": { "attribute": "type", "values": ["widget"] },
       "code": "empty-widget-slot",
       "severity": "error",
-      "message": "widget 槽位至少需要一个 Widget Item"
-    },
-    {
-      "id": "non-widget-slot-empty",
-      "kind": "childCount",
-      "target": { "scope": "resource", "resourceTypes": ["Slot"] },
-      "maximum": 0,
-      "when": { "attribute": "type", "values": ["widget"], "negate": true },
-      "code": "slot-children-not-applicable",
-      "severity": "error",
-      "message": "{type} 槽位不能包含 Item"
+      "message": "Slot 槽位至少需要包含微件"
     }
   ]
 }

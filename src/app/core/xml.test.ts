@@ -230,6 +230,45 @@ describe("Vela manifest.xml 已观测格式边界", () => {
     expect(getDeviceProfile("N62S").label).toBe("Xiaomi Watch S4 Sport");
   });
 
+  it("解析并序列化带 movable 和 Position 子节点的 Slot 资源", () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Watchface id="123456789012" name="测试" width="432" height="514">
+    <Resources>
+        <Widget name="Widget2" groupType="general"/>
+        <Slot name="Slot1" type="widget" movable="true">
+            <Item ref="@Widget2"/>
+            <Position x="72" y="199"/>
+            <Position x="72" y="334"/>
+        </Slot>
+    </Resources>
+    <Theme type="normal" name="默认" bgColor="#000000">
+        <Layout ref="@Slot1" x="72" y="199"/>
+    </Theme>
+</Watchface>`;
+    const parsed = parseManifest(xml);
+    expect(parsed.diagnostics.filter((d) => d.severity === "error")).toHaveLength(0);
+    expect(parsed.project).not.toBeNull();
+    const slot = parsed.project!.resources.find((r) => r.type === "Slot");
+    expect(slot).toBeDefined();
+    expect(slot?.attrs.movable).toBe("true");
+    expect(slot?.attrs.type).toBe("widget");
+    expect(slot?.children).toHaveLength(3);
+    expect(slot?.children[0]?.tag).toBe("Item");
+    expect(slot?.children[0]?.attrs.ref).toBe("@Widget2");
+    expect(slot?.children[1]?.tag).toBe("Position");
+    expect(slot?.children[1]?.attrs.x).toBe("72");
+    expect(slot?.children[1]?.attrs.y).toBe("199");
+    expect(slot?.children[2]?.tag).toBe("Position");
+    expect(slot?.children[2]?.attrs.x).toBe("72");
+    expect(slot?.children[2]?.attrs.y).toBe("334");
+
+    const serialized = serializeManifest(parsed.project!);
+    expect(serialized).toContain('<Slot name="Slot1" type="widget" movable="true">');
+    expect(serialized).toContain('<Item ref="@Widget2"/>');
+    expect(serialized).toContain('<Position x="72" y="199"/>');
+    expect(serialized).toContain('<Position x="72" y="334"/>');
+  });
+
   it("生成合法的 12 位表盘 ID", () => {
     expect(generateWatchfaceId()).toMatch(/^\d{12}$/);
   });

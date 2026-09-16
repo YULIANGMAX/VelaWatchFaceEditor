@@ -244,20 +244,35 @@ export function encodeDataResource(
 }
 
 export function encodeSlot(resource: WatchfaceResource, resolve: ResolveReference): Uint8Array {
-  if (resource.attrs.type === "dualTime") return Uint8Array.of(0, 0, 0x60, 0);
-  if (resource.attrs.type === "appWidget") {
-    const codes: Readonly<Record<string, readonly number[]>> = {
-      heartRateRectangleDark: [0, 0, 0x30, 0, 0x92, 0x10, 0, 0, 0, 0, 0, 0, 0, 0],
-      fitnessRectangleDarkStep: [0, 0, 0x30, 0, 0x92, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0],
-    };
-    const bytes = codes[resource.attrs.appWidgetID];
-    if (!bytes) throw new Error(`未知 appWidgetID：${resource.attrs.appWidgetID}`);
-    return Uint8Array.from(bytes);
-  }
   if (resource.attrs.type !== "widget") throw new Error(`未知 Slot 类型：${resource.attrs.type}`);
-  const result = new Uint8Array(4 + resource.children.length * 4);
-  writeUint32(result, 0, resource.children.length);
-  resource.children.forEach((child, index) => encodeReference(result, 4 + index * 4, resolve(child.attrs.ref, 9)));
+  const items = resource.children.filter((child) => child.tag === "Item" || (!child.tag && child.attrs.ref));
+  const positions = resource.children.filter((child) => child.tag === "Position" || (!child.tag && (child.attrs.x !== undefined || child.attrs.y !== undefined)));
+  const isMovable = resource.attrs.movable === "true" && positions.length > 0;
+
+  if (!isMovable) {
+    const result = new Uint8Array(4 + items.length * 4);
+    writeUint32(result, 0, items.length);
+    items.forEach((child, index) => encodeReference(result, 4 + index * 4, resolve(child.attrs.ref, 9)));
+    return result;
+  }
+
+  const result = new Uint8Array(4 + items.length * 4 + positions.length * 4);
+  writeUint16(result, 0, items.length);
+  result[2] = 0x01;
+  result[3] = positions.length;
+
+  let offset = 4;
+  for (const item of items) {
+    encodeReference(result, offset, resolve(item.attrs.ref, 9));
+    offset += 4;
+  }
+  for (const pos of positions) {
+    const x = Math.round(Number(pos.attrs.x) || 0) & 0x3ff;
+    const y = Math.round(Number(pos.attrs.y) || 0) & 0x3ff;
+    const code = x | (y << 10);
+    writeUint32(result, offset, code);
+    offset += 4;
+  }
   return result;
 }
 

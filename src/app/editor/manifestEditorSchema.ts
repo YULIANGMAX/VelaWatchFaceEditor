@@ -58,6 +58,7 @@ interface EditorResourceDefinition {
   description: string;
   fields: EditorFieldDefinition[];
   child?: { tag: string; fields: EditorFieldDefinition[] };
+  extraChildren?: Array<{ tag: string; fields: EditorFieldDefinition[] }>;
 }
 
 export interface ChildDefinition {
@@ -73,6 +74,7 @@ export interface ResourceDefinition {
   fields: FieldDefinition[];
   defaults: Attributes;
   child?: ChildDefinition;
+  extraChildren?: ChildDefinition[];
 }
 
 function fail(message: string): never {
@@ -138,6 +140,16 @@ export const RESOURCE_DEFINITIONS: ResourceDefinition[] = FORMAT_RESOURCE_DEFINI
     fields: mergeFields(format.fields, editor.fields, format.type),
     child: format.child && editor.child
       ? { tag: format.child.tag, fields: mergeFields(format.child.fields, editor.child.fields, `${format.type}/${format.child.tag}`) }
+      : undefined,
+    extraChildren: format.extraChildren && editor.extraChildren
+      ? format.extraChildren.map((formatExtra) => {
+          const editorExtra = editor.extraChildren?.find((e) => e.tag === formatExtra.tag);
+          if (!editorExtra) fail(`${format.type} 缺少 extraChild ${formatExtra.tag}`);
+          return {
+            tag: formatExtra.tag,
+            fields: mergeFields(formatExtra.fields, editorExtra.fields, `${format.type}/${formatExtra.tag}`),
+          };
+        })
       : undefined,
   };
 });

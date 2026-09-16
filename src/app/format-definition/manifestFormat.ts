@@ -34,6 +34,7 @@ export interface FormatResourceDefinition {
   fields: FormatFieldDefinition[];
   defaults: Attributes;
   child?: FormatChildDefinition;
+  extraChildren?: FormatChildDefinition[];
 }
 
 export interface ManifestFormatSpec {
@@ -97,6 +98,9 @@ export function loadManifestSpec(value: unknown): ManifestFormatSpec {
   for (const definition of spec.resources) {
     validateFields(definition.fields, definition.type, typeSet);
     if (definition.child) validateFields(definition.child.fields, `${definition.type}/${definition.child.tag}`, typeSet);
+    for (const extra of definition.extraChildren ?? []) {
+      validateFields(extra.fields, `${definition.type}/${extra.tag}`, typeSet);
+    }
     const keys = new Set(definition.fields.map((field) => field.key));
     for (const key of Object.keys(definition.defaults)) if (!keys.has(key)) fail(`${definition.type}.defaults 包含未知属性 ${key}`);
   }
@@ -113,6 +117,14 @@ export const FORMAT_RESOURCE_DEFINITION_MAP = Object.fromEntries(
 export const ROOT_ATTRIBUTE_NAMES = new Set(FORMAT_STRUCTURE.root.fields.map((field) => field.key));
 export const THEME_ATTRIBUTE_NAMES = new Set(FORMAT_STRUCTURE.theme.fields.map((field) => field.key));
 export const LAYOUT_ATTRIBUTE_NAMES = new Set(FORMAT_STRUCTURE.theme.child.fields.map((field) => field.key));
+
+export function getResourceChildDefinition(
+  definition: FormatResourceDefinition,
+  tag: string,
+): FormatChildDefinition | undefined {
+  if (definition.child?.tag === tag) return definition.child;
+  return definition.extraChildren?.find((c) => c.tag === tag);
+}
 
 export function formatConditionMatches(condition: FormatCondition | undefined, attrs: Attributes): boolean {
   return !condition || condition.values.includes(attrs[condition.key] ?? "");
@@ -136,4 +148,3 @@ function enumOptions(type: ResourceType, key: string, child = false): readonly s
 
 export const TRANSLATION_LANGUAGES = enumOptions("Translation", "language", true);
 export const JUMP_APPS = enumOptions("Widget", "jumpApp");
-export const APP_WIDGET_IDS = enumOptions("Slot", "appWidgetID");

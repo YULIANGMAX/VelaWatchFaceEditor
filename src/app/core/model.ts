@@ -28,6 +28,7 @@ export type Attributes = Record<string, string>;
 
 export interface ResourceItem {
   id: string;
+  tag?: string;
   attrs: Attributes;
 }
 

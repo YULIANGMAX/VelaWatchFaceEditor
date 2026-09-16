@@ -17,6 +17,7 @@ import {
 import {
   FORMAT_RESOURCE_DEFINITION_MAP,
   FORMAT_STRUCTURE,
+  getResourceChildDefinition,
   LAYOUT_ATTRIBUTE_NAMES,
   ROOT_ATTRIBUTE_NAMES,
   THEME_ATTRIBUTE_NAMES,
@@ -81,8 +82,9 @@ function resourceAttributeNames(definition: FormatResourceDefinition): Set<strin
 
 function childAllowedAttributes(resourceType: ResourceType, childTag: string): Set<string> {
   const definition = FORMAT_RESOURCE_DEFINITION_MAP[resourceType];
-  if (definition.child?.tag === childTag) {
-    return new Set(definition.child.fields.map((field) => field.key));
+  const childDef = getResourceChildDefinition(definition, childTag);
+  if (childDef) {
+    return new Set(childDef.fields.map((field) => field.key));
   }
   return new Set();
 }
@@ -130,7 +132,8 @@ function parseResource(
   const children: ResourceItem[] = [];
 
   for (const child of elementChildren(node)) {
-    if (!definition.child || child.tagName !== definition.child.tag) {
+    const childDef = getResourceChildDefinition(definition, child.tagName);
+    if (!childDef) {
       diagnostics.push(
         diagnostic(
           "warning",
@@ -145,6 +148,7 @@ function parseResource(
 
     children.push({
       id: createId("child"),
+      tag: child.tagName,
       attrs: readAttributes(
         child,
         childAllowedAttributes(type, child.tagName),
@@ -324,15 +328,26 @@ function serializeResource(
   const attrs = serializeAttributes(resource.attrs, order);
 
   const childExtensions = extensions.filter((entry) => entry.parent === "Resource" && entry.parentId === resource.id);
-  if ((!definition.child || resource.children.length === 0) && childExtensions.length === 0) {
+  const hasChildDef = Boolean(definition.child || (definition.extraChildren && definition.extraChildren.length > 0));
+  if ((!hasChildDef || resource.children.length === 0) && childExtensions.length === 0) {
     return [`${indent}<${resource.type}${attrs}/>`];
   }
 
   const lines = [`${indent}<${resource.type}${attrs}>`];
-  const childDefinition = definition.child;
-  const childLines = resource.children.map((child) => [
-      `${indent}    <${childDefinition?.tag ?? "Unknown"}${serializeAttributes(child.attrs, childDefinition?.fields.map((field) => field.key))}/>`
-    ]);
+  const childLines = resource.children.map((child) => {
+    let childTag = child.tag;
+    if (!childTag) {
+      if (child.attrs.x !== undefined || child.attrs.y !== undefined) {
+        childTag = "Position";
+      } else {
+        childTag = definition.child?.tag ?? "Item";
+      }
+    }
+    const childDefinition = getResourceChildDefinition(definition, childTag);
+    return [
+      `${indent}    <${childTag}${serializeAttributes(child.attrs, childDefinition?.fields.map((field) => field.key))}/>`
+    ];
+  });
   lines.push(...mergeExtensionLines(childLines, childExtensions, `${indent}    `));
   lines.push(`${indent}</${resource.type}>`);
   return lines;

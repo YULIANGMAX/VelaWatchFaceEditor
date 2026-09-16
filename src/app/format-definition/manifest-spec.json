@@ -1186,30 +1186,12 @@
           "type": "string",
           "required": true,
           "enum": [
-            "widget",
-            "appWidget",
-            "dualTime"
+            "widget"
           ]
         },
         {
-          "key": "appWidgetID",
-          "type": "string",
-          "enum": [
-            "heartRateRectangleDark",
-            "fitnessRectangleDarkStep"
-          ],
-          "visibleWhen": {
-            "key": "type",
-            "values": [
-              "appWidget"
-            ]
-          },
-          "requiredWhen": {
-            "key": "type",
-            "values": [
-              "appWidget"
-            ]
-          }
+          "key": "movable",
+          "type": "boolean"
         }
       ],
       "child": {
@@ -1224,7 +1206,24 @@
             ]
           }
         ]
-      }
+      },
+      "extraChildren": [
+        {
+          "tag": "Position",
+          "fields": [
+            {
+              "key": "x",
+              "type": "number",
+              "required": true
+            },
+            {
+              "key": "y",
+              "type": "number",
+              "required": true
+            }
+          ]
+        }
+      ]
     },
     {
       "type": "Widget",

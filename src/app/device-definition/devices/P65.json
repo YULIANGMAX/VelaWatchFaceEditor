@@ -200,10 +200,14 @@
                 "Slot": [
                     "name",
                     "type",
-                    "appWidgetID"
+                    "movable"
                 ],
                 "Slot/Item": [
                     "ref"
+                ],
+                "Slot/Position": [
+                    "x",
+                    "y"
                 ],
                 "Widget": [
                     "name",
