@@ -1062,13 +1062,7 @@ export function CanvasStage(_props: {
                 {activeGuides.horizontal.map((gy, idx) => (
                   <div key={`guide-h-${idx}-${gy}`} className="smart-guide-line smart-guide-line-y" style={{ top: gy }} />
                 ))}
-                {theme.layouts.length === 0 ? (
-                  <div className="canvas-empty-dial-hint">
-                    <div className="empty-dial-crosshair" />
-                    <span>表盘暂无可见图层</span>
-                    <small style={{ fontSize: "11px", opacity: 0.8 }}>在左侧添加图层或引用资源</small>
-                  </div>
-                ) : null}
+
               </div>
             </div>
             {/* 顶层交互悬浮层：脱离 watchface-clip 的 overflow: hidden 圆角裁剪 */}

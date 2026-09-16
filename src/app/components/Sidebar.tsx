@@ -1480,8 +1480,7 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
             {theme?.layouts.length === 0 ? (
               <div className="empty-state-card">
                 <Layers3 size={28} className="empty-state-icon" />
-                <div className="empty-state-title">暂无图层</div>
-                <div className="empty-state-desc">点击上方“+”添加图层，或从资源库中引用组件</div>
+                <div className="empty-state-title">暂无布局</div>
               </div>
             ) : null}
           </div>
