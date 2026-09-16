@@ -710,8 +710,11 @@ export async function writeThemePreviewDirectory(
     if (!(error instanceof DOMException && error.name === "NotFoundError")) throw error;
     previewDirectory = await resources.getDirectoryHandle(PROJECT_PREVIEW_DIRECTORY, { create: true });
   }
+  const keepNames = new Set(previews.map((entry) => entry.fileName));
   for await (const [name] of previewDirectory.entries()) {
-    await previewDirectory.removeEntry(name, { recursive: true }).catch(() => undefined);
+    if (!keepNames.has(name)) {
+      await previewDirectory.removeEntry(name, { recursive: true }).catch(() => undefined);
+    }
   }
   for (const preview of previews) {
     const handle = await previewDirectory.getFileHandle(preview.fileName, { create: true });

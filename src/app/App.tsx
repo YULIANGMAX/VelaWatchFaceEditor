@@ -470,16 +470,18 @@ export function App() {
       if (!theme) continue;
       const resourceName = preview.resourceName;
       const assetPath = `_preview/${preview.fileName}`;
-      if (!assets[assetPath]) {
-        assets[assetPath] = {
-          path: assetPath,
-          blob: preview.blob,
-          url: URL.createObjectURL(preview.blob),
-          width: current.canvas.width,
-          height: current.canvas.height,
-          imageMetadataLoaded: true,
-        };
+      const previous = assets[assetPath];
+      if (previous && previous.url.startsWith("blob:")) {
+        URL.revokeObjectURL(previous.url);
       }
+      assets[assetPath] = {
+        path: assetPath,
+        blob: preview.blob,
+        url: URL.createObjectURL(preview.blob),
+        width: current.canvas.width,
+        height: current.canvas.height,
+        imageMetadataLoaded: true,
+      };
       const existing = resources.find((entry) => entry.type === "Image" && entry.attrs.name === resourceName);
       if (existing) {
         existing.attrs = { ...existing.attrs, src: assetPath };
