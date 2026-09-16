@@ -69,6 +69,68 @@ function WidgetItem({
   return <div style={style}>{renderResource(refName(child.attrs.ref), depth + 1)}</div>;
 }
 
+function dynamicChildDimensions(
+  project: WatchfaceProject,
+  target: WatchfaceResource | undefined,
+  now: Date,
+  preview: WatchfacePreviewContext,
+  visited = new Set<string>(),
+): WidgetChildDimensions {
+  if (!target) return { width: 0, height: 0 };
+  if (target.type === "DataItemImageNumber") {
+    return imageNumberDimensions(project, target, now, preview);
+  }
+  if (target.type === "Widget") {
+    const explicitW = Number(target.attrs.w);
+    const explicitH = Number(target.attrs.h);
+    if (Number.isFinite(explicitW) && explicitW > 0 && Number.isFinite(explicitH) && explicitH > 0) {
+      return { width: explicitW, height: explicitH };
+    }
+    if (visited.has(target.id)) return { width: 0, height: 0 };
+    visited.add(target.id);
+    const flex = target.attrs.flex_direction;
+    const gap = numberAttr(target, "gap");
+    const innerChildren = target.children.map((child) => {
+      const innerTarget = findResource(project, refName(child.attrs.ref), preview.color);
+      return dynamicChildDimensions(project, innerTarget, now, preview, visited);
+    });
+
+    if (flex === "row") {
+      let totalW = 0;
+      let maxH = 0;
+      innerChildren.forEach((dim, i) => {
+        totalW += dim.width;
+        if (i < innerChildren.length - 1) totalW += gap;
+        maxH = Math.max(maxH, dim.height);
+      });
+      return { width: Math.max(0, Math.round(totalW)), height: Math.max(0, Math.round(maxH)) };
+    }
+
+    if (flex === "column") {
+      let maxW = 0;
+      let totalH = 0;
+      innerChildren.forEach((dim, i) => {
+        maxW = Math.max(maxW, dim.width);
+        totalH += dim.height;
+        if (i < innerChildren.length - 1) totalH += gap;
+      });
+      return { width: Math.max(0, Math.round(maxW)), height: Math.max(0, Math.round(totalH)) };
+    }
+
+    let maxR = 0;
+    let maxB = 0;
+    target.children.forEach((child, i) => {
+      const cx = Number(child.attrs.x) || 0;
+      const cy = Number(child.attrs.y) || 0;
+      const dim = innerChildren[i] ?? { width: 0, height: 0 };
+      maxR = Math.max(maxR, cx + dim.width);
+      maxB = Math.max(maxB, cy + dim.height);
+    });
+    return { width: Math.max(0, Math.round(maxR)), height: Math.max(0, Math.round(maxB)) };
+  }
+  return measureResource(project, target, preview.color);
+}
+
 export function WidgetRenderer({
   project,
   resource,
@@ -80,12 +142,12 @@ export function WidgetRenderer({
   const flex = resource.attrs.flex_direction;
   const children = resource.children.map((child) => {
     const target = findResource(project, refName(child.attrs.ref), preview.color);
-    const dimensions: WidgetChildDimensions =
-      target?.type === "DataItemImageNumber"
-        ? imageNumberDimensions(project, target, now, preview)
-        : target
-          ? measureResource(project, target, preview.color)
-          : { width: 0, height: 0 };
+    const dimensions: WidgetChildDimensions = dynamicChildDimensions(
+      project,
+      target,
+      now,
+      preview,
+    );
     return { child, target, dimensions };
   });
 
@@ -95,6 +157,7 @@ export function WidgetRenderer({
   );
   const isRowCursorLayout = flex === "row" && visibleChildren.length > 0;
   const isColumnCursorLayout = flex === "column" && visibleChildren.length > 0;
+
   const widgetWidth = numberAttr(resource, "w");
   const widgetHeight = numberAttr(resource, "h");
   const gap = numberAttr(resource, "gap");

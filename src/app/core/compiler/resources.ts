@@ -286,7 +286,8 @@ function flexBits(resource: WatchfaceResource): number | undefined {
   if (resource.attrs.align_items === "center") bits |= 0x100;
   else if (resource.attrs.align_items === "flex-end") bits |= 0x200;
   const gap = numberValue(resource.attrs.gap);
-  bits |= gap < 0 ? 0x100000 | ((Math.abs(gap) * 0x800) & 0xf800) : (gap * 0x800) & 0xf800;
+  const magnitude = (Math.abs(gap) & 0x1ff) * 0x800;
+  bits |= gap < 0 ? 0x100000 | magnitude : magnitude;
   return bits;
 }
 

@@ -111,10 +111,12 @@ export function widgetColumnPositions(
       contentShiftX = -maxItemWidth;
     }
   } else {
-    if (alignContent === "center") {
-      contentShiftX = (widgetWidth - maxItemWidth) / 2;
-    } else if (alignContent === "flex-end") {
-      contentShiftX = widgetWidth - maxItemWidth;
+    if (!alignItems || alignItems === "flex-start") {
+      if (alignContent === "center") {
+        contentShiftX = (widgetWidth - maxItemWidth) / 2;
+      } else if (alignContent === "flex-end") {
+        contentShiftX = widgetWidth - maxItemWidth;
+      }
     }
   }
 
@@ -135,16 +137,17 @@ export function widgetColumnPositions(
           x = anchorX;
         }
       }
+      return { x: x + contentShiftX, y };
     } else {
       if (alignItems === "center") {
         x = offsetX + (maxItemWidth - item.width) / 2;
       } else if (alignItems === "flex-end") {
         x = offsetX + (maxItemWidth - item.width);
       } else {
-        x = offsetX;
+        x = 0;
       }
+      return { x: x + contentShiftX, y };
     }
-    return { x: x + contentShiftX, y };
   });
 }
 

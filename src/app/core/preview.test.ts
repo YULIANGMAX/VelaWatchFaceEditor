@@ -159,4 +159,27 @@ describe("表盘预览计算", () => {
   it("允许预览上下文覆盖设备指标", () => {
     expect(metricValue("healthStepCount", new Date(0), { healthStepCount: 1234 })).toBe(1234);
   });
+
+  it("嵌套微件按声明宽高排版且内部居中对齐外层负 gap", () => {
+    // 验证官方经典睡眠组件盒模型：外层 row (w=131, gap=-10, jc=center)，
+    // 子项 0：图标 (w=54)，子项 1：嵌套微件 (声明 w=70, 内部 column, ai=center, 动态内容 5.9 宽 50)
+    const rowPositions = widgetRowPositions(131, "center", -10, [
+      { align: undefined, width: 54, unitWidth: 0 },
+      { align: undefined, width: 70, unitWidth: 0 },
+    ]);
+    const iconRight = rowPositions[0] + 54;
+    const childWidgetLeft = rowPositions[1];
+
+    const colPositions = widgetColumnPositions(70, 52, "center", "center", "center", 6, [
+      { align: undefined, width: 50, height: 26 },
+      { align: undefined, width: 48, height: 20 },
+    ]);
+    const numAbsoluteLeft = childWidgetLeft + colPositions[0].x;
+
+    // 内部 (70-50)/2 = 10 像素的居中偏移恰好与外部 gap=-10 抵消，使得数字左缘与图标右缘恰好相切碰触 (0px)
+    expect(iconRight).toBe(62.5);
+    expect(numAbsoluteLeft).toBe(62.5);
+    expect(iconRight - numAbsoluteLeft).toBe(0);
+  });
 });
+

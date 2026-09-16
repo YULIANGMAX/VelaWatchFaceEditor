@@ -40,20 +40,24 @@ export function imageNumberDimensions(
   );
   const space = numberAttr(resource, "space");
   const decimalOffset = numberAttr(resource, "decimalOffsetX");
+  const arrayDim = measureResource(project, array, preview.color);
+  const fallbackCharWidth = arrayDim.width > 0 ? arrayDim.width : 20;
+  const fallbackCharHeight = arrayDim.height > 0 ? arrayDim.height : 26;
   let digitsWidth = 0;
   let digitsHeight = 0;
   Array.from(text).forEach((token) => {
     const frameIndex = token === "-" ? 10 : token === "." ? 11 : Number(token);
     const asset = imageAsset(project, array.children[frameIndex]?.attrs.src);
-    digitsWidth += (asset?.width || 0) + space;
-    digitsHeight = Math.max(digitsHeight, asset?.height || 0);
+    digitsWidth += (asset?.width || fallbackCharWidth) + space;
+    digitsHeight = Math.max(digitsHeight, asset?.height || fallbackCharHeight);
   });
   if (text.length > 0) digitsWidth -= space;
   if (text.includes(".") && decimalOffset !== 0) digitsWidth += decimalOffset;
+  digitsWidth = Math.max(0, digitsWidth);
   const unit = resource.attrs.unitIcon ? findResource(project, refName(resource.attrs.unitIcon), preview.color) : undefined;
   const unitDimension = unit ? measureResource(project, unit, preview.color) : { width: 0, height: 0 };
   return {
-    width: digitsWidth + (unitDimension.width > 0 && digitsWidth > 0 ? space : 0) + unitDimension.width,
+    width: Math.max(0, Math.round(digitsWidth + (unitDimension.width > 0 && digitsWidth > 0 ? space : 0) + unitDimension.width)),
     height: Math.max(digitsHeight, unitDimension.height),
     unitWidth: unitDimension.width,
   };

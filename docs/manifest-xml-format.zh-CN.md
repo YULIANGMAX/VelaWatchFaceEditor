@@ -539,7 +539,11 @@ perpetualcalendar, amap, intercom, navigation, research, wechat
   - 在 `flex_direction="row"` 横向单行排布下，穿戴端固件对此属性完全忽略，设置任何值均等同于 `flex-start`（顶端 $y=0$），横向垂直对齐完全由 `align_content` 独占控制。
   - 在 `flex_direction="column"` 纵向列排布下，穿戴端固件以此属性控制子项在上述 `align_content` 确定的大基线内部的相对锚定。实测以横向总余量 $\text{freeSpaceX} = w - \max(\text{width})$ 确定主导锚线 $\text{anchorX} = \max(\text{width}) + \text{offsetX}$（其中 `flex-start` 时 $\text{offsetX}=0$，`center` 时 $\text{offsetX}=\text{freeSpaceX}/2$，`flex-end` 时 $\text{offsetX}=\text{freeSpaceX}$）。`align="right"` 项左移自身宽度贴线，普通项按 `flex-start` 左贴线、`center` 居中切线、`flex-end` 右贴线分布。
   - 底层二进制编码掩码为：`flex-start` 为 `0`，`center` 为 `0x100`（`1 << 8`），`flex-end` 为 `0x200`（`2 << 8`）。
-- `gap`：自动布局间距，可为负值；编码公式为 `((Math.abs(gap) * 0x800) & 0xf800)`，负值附带符号位 `0x100000`。
+- `gap`：自动布局间距，支持正负数值（穿戴端真机实测验证）；编码公式为 `(Math.abs(gap) & 0x1ff) * 0x800`，间距数值位宽占用 9 bit（取值范围 0~511），负值附带符号标志位 `0x100000`（bit 20）。在真机端表现为子项图层的真实相对重合位移，后声明之子元素图层依序压覆在先声明之子元素图层上方。
+- **嵌套微件盒模型（Hierarchical Widget Box Model）**：
+  - 当一个 `Widget` 作为子项嵌套于父级 `Widget` 中时，父级自动布局引擎严格以该子微件显式声明的结构体尺寸（`w` 与 `h`）作为其物理排版包围盒，不动态收缩其外部占位。
+  - 子微件内部的内容项（如文本、图片数字、单位等）则在子微件声明的 `w` / `h` 矩形框内独立执行其自身的 `flex` 排版（如 `align_items="center"` 居中）。
+  - **内外部位移对冲效应**：当父微件指定负向 `gap`（如 `gap="-10"`）使子微件向左切入前项图层时，若子微件内部内容因居中留有余量（如 $(w_{\text{child}} - w_{\text{content}}) / 2 = 10\text{px}$），内部内容的右移居中将自然与外部微件框的左移切入对冲，最终在视觉上呈现精确相切碰触（0 像素净重叠）。
 
 子元素 `Item` 通过 `ref` 引用资源。可以在每个 `Item` 上用 `x`、`y` 显式定位，也可以依赖上述 flex 属性自动布局。
 
