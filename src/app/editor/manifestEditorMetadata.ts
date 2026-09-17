@@ -773,8 +773,7 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "indicatorImage",
           "label": "指示图片",
-          "control": "reference",
-          "previewSupport": "partial"
+          "control": "reference"
         },
         {
           "key": "pivotX",
@@ -809,8 +808,7 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "indicatorRadius",
           "label": "指示半径",
-          "control": "number",
-          "previewSupport": "partial"
+          "control": "number"
         }
       ]
     },

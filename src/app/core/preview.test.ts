@@ -160,6 +160,15 @@ describe("表盘预览计算", () => {
     expect(metricValue("healthStepCount", new Date(0), { healthStepCount: 1234 })).toBe(1234);
   });
 
+  it("圆弧进度指示器半径为0时与圆心重合，大于0时沿极径分布", () => {
+    // 指示半径为 0 时，中心点与圆心完全重合
+    expect(polarPoint(66, 66, 0, 45)).toEqual({ x: 66, y: 66 });
+    // 指示半径为 50，角度为 0（12 点钟方向）时，位于 (66, 16)
+    expect(polarPoint(66, 66, 50, 0)).toEqual({ x: 66, y: 16 });
+    // 角度为 90（3 点钟方向）时，位于 (116, 66)
+    expect(polarPoint(66, 66, 50, 90)).toEqual({ x: 116, y: 66 });
+  });
+
   it("嵌套微件按声明宽高排版且内部居中对齐外层负 gap", () => {
     // 验证官方经典睡眠组件盒模型：外层 row (w=131, gap=-10, jc=center)，
     // 子项 0：图标 (w=54)，子项 1：嵌套微件 (声明 w=70, 内部 column, ai=center, 动态内容 5.9 宽 50)

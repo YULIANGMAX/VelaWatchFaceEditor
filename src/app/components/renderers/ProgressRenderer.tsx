@@ -57,8 +57,11 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
   const indicatorHeight = indicatorAsset?.height ?? 16;
   const strokeLinecap = resource.attrs.endingStyle === "round" ? "round" : "butt";
 
+  const barWidth = Math.max(0, numberAttr(resource, "barWidth"));
   let path = "";
   let point = { x: 0, y: 0 };
+  let startPoint = { x: 0, y: 0 };
+  let indicatorAngle = 0;
   const background = resource.attrs.bg ? findResource(project, refName(resource.attrs.bg), preview.color) : undefined;
   const backgroundAsset = background?.type === "Image" ? imageAsset(project, background.attrs.src) : undefined;
 
@@ -69,18 +72,29 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
       Boolean(backgroundAsset),
     );
     const angle = clipAngles.angleRange * progress;
+    const pivotX = numberAttr(resource, "pivotX");
+    const pivotY = numberAttr(resource, "pivotY");
+    const barRadius = numberAttr(resource, "barRadius");
+
     path = arcPath(
-      numberAttr(resource, "pivotX"),
-      numberAttr(resource, "pivotY"),
-      numberAttr(resource, "barRadius"),
+      pivotX,
+      pivotY,
+      barRadius,
       clipAngles.startAngle,
       angle,
     );
+    startPoint = polarPoint(
+      pivotX,
+      pivotY,
+      barRadius,
+      clipAngles.startAngle,
+    );
+    indicatorAngle = clipAngles.startAngle + angle;
     point = polarPoint(
-      numberAttr(resource, "pivotX"),
-      numberAttr(resource, "pivotY"),
-      numberAttr(resource, "indicatorRadius", numberAttr(resource, "barRadius")),
-      clipAngles.startAngle + angle,
+      pivotX,
+      pivotY,
+      numberAttr(resource, "indicatorRadius", barRadius),
+      indicatorAngle,
     );
   } else {
     const startX = numberAttr(resource, "startX");
@@ -101,19 +115,28 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
               d={path}
               fill="none"
               stroke="#fff"
-              strokeWidth={Math.max(0, numberAttr(resource, "barWidth"))}
+              strokeWidth={barWidth}
               strokeLinecap={strokeLinecap}
             />
+            {arc && progress > 0 && barWidth > 0 ? (
+              <circle
+                cx={startPoint.x}
+                cy={startPoint.y}
+                r={barWidth / 2}
+                fill="#fff"
+              />
+            ) : null}
           </mask>
         </defs>
         <image href={asset.url} width={width} height={height} mask={`url(#${maskId})`} />
-        {indicatorAsset && progress > 0 ? (
+        {indicatorAsset ? (
           <image
             href={indicatorAsset.url}
             x={point.x - indicatorWidth / 2}
             y={point.y - indicatorHeight / 2}
             width={indicatorWidth}
             height={indicatorHeight}
+            transform={arc ? `rotate(${indicatorAngle} ${point.x} ${point.y})` : undefined}
           />
         ) : null}
       </svg>

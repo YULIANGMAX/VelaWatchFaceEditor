@@ -396,9 +396,9 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 - `angleRange`：完整进度覆盖的角度；正值顺时针，负值逆时针。
 - `barRadius`：进度条中心线半径。
 - `barWidth`：线宽。例如半径 `90`、线宽 `10` 时，实际占据半径约为 `[85, 95]`。
-- `endingStyle`：`normal` 为平直端点，`round` 为圆头。
-- `indicatorImage`：可选，引用指示当前值的图片。
-- `indicatorRadius`：可选，与指示图片配合使用的偏置或裁剪半径。
+- `endingStyle`：端点样式，**仅修饰结尾端（终点）**（穿戴端真机实测验证）；起点恒定为圆形（`round`），不响应此属性。结尾端设为 `normal` 时截平为平直端点，设为 `round` 时修饰为半圆头。
+- `indicatorImage`：可选，引用指示当前进度值的图片。指示图片以自身中心点为锚点，其自身旋转角度随当前进度条的角度同步旋转（顺时针同向变化，行为如同钟表指针）。
+- `indicatorRadius`：可选，指示图片中心点到圆心 `(pivotX, pivotY)` 的物理距离（半径）。当设为 `0` 时，指示图片的中心点与圆心完全重合（例如 50×50 的图片，中心点 25, 25 与圆心重叠）；当大于 `0` 时，指示图片中心沿着该半径的圆周随进度旋转定位。未显式配置时默认与 `barRadius` 一致。
 
 ### 5.7 `DataItemLineProgressBar`
 
