@@ -156,12 +156,14 @@ export async function readResourceLibrary(
     if (current && current.blob.size === entry.file.size && current.lastModified === entry.file.lastModified && (!/\.png$/i.test(entry.path) || current.imageMetadataLoaded)) {
       assets[entry.path] = current;
     } else {
+      const buffer = await entry.file.arrayBuffer();
+      const memoryBlob = new Blob([buffer], { type: entry.file.type || "image/png" });
       assets[entry.path] = {
         path: entry.path,
-        blob: entry.file,
-        url: objectUrl(entry.file),
+        blob: memoryBlob,
+        url: objectUrl(memoryBlob),
         lastModified: entry.file.lastModified,
-        ...await imageMetadata(entry.file, entry.path),
+        ...await imageMetadata(memoryBlob, entry.path),
       };
     }
     count++;
@@ -266,11 +268,13 @@ export async function importProjectFromEntries(
   const CONCURRENCY_LIMIT = 16;
   await runConcurrent(resourceEntries, CONCURRENCY_LIMIT, async (entry) => {
     const path = entry.path.slice(PROJECT_RESOURCES_DIRECTORY.length + 1);
-    const meta = await imageMetadata(entry.file, path);
+    const buffer = await entry.file.arrayBuffer();
+    const memoryBlob = new Blob([buffer], { type: entry.file.type || "image/png" });
+    const meta = await imageMetadata(memoryBlob, path);
     assets[path] = {
       path,
-      blob: entry.file,
-      url: objectUrl(entry.file),
+      blob: memoryBlob,
+      url: objectUrl(memoryBlob),
       lastModified: entry.file.lastModified,
       ...meta,
     };
