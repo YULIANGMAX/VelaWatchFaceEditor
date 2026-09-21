@@ -37,8 +37,13 @@ src/app/device-definition/devices/<deviceType>.json
 - `dataSources.catalog`：引用 `data-sources/<名称>.json` 中的基础数据源编码目录；目录只复用数据，不参与编译分支。
 - `dataSources.policy`：`all-known` 表示允许编译器已知数据源并应用 `exclude`；`allow-list` 表示仅允许 `include`。
 - `dataSources.allowRawCodes`：是否允许在 manifest 中直接使用二字节十六进制数据源。
-- `dataSources.codeOverrides`：该设备的数据源二字节编码覆盖，也可用于增加设备专属数据源。
-- `dataSources.verification`：能力是否已经真机验证。未验证设备必须写 `unverified`，编辑器会在项目属性中显示。
+- `dataSources.codeOverrides`：该设备的数据源二字节编码覆盖表（对象结构 `Record<string, string>`，默认为 `{}`）。
+  - **键格式**：数据源语义名称，必须为合法的字母数字标识符（正则 `/^[A-Za-z][A-Za-z0-9]*$/`，如 `stepCount`、`deviceCustomMetric`）。
+  - **值格式**：4 位十六进制字符串（大写，正则 `^[0-9a-fA-F]{4}$`，如 `"00A5"`、`"00FF"`），对应写入底层 `resource.bin` 的 2 字节无符号整数（UInt16）原始代号。
+  - **生效机制**：
+    1. **代号覆盖（Override）**：若键名已存在于基础数据源目录 `catalog`（如 `vela.json`），编译器在构建该设备时**优先采用此处的专属代号**覆盖通用代号，用于适配个别机型固件调整了数据源编号的特例；
+    2. **专属扩充（Extend）**：若键名在基础目录之外，自动作为该设备专属私有数据源并入可用列表，允许在 `manifest.xml` 中直接使用该名称，编译时自动翻译为对应的 16 进制编码；
+    3. **现状说明**：目前已录入的 16 款设备固件全部严格兼容通用的 `vela.json` 标准代号全集，无特例冲突，故各设备 JSON 中此处均配置为空对象 `{}` 备用。
 
 `device.schema.json` 供编辑器和 IDE 检查结构；运行时注册表还会检查未知字段、文件名、重复设备编码、非负圆角和能力列表冲突。胶囊屏设备允许圆角略大于短边一半，渲染时由轮廓裁切。
 

@@ -33,7 +33,6 @@ export interface DeviceDataSourceDefinition {
   allowRawCodes: boolean;
   codeOverrides: Record<string, string>;
   codes: Record<string, string>;
-  verification: "verified" | "unverified";
 }
 
 export interface DeviceManifestCapabilities {

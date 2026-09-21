@@ -352,7 +352,6 @@
         "include": [],
         "exclude": [],
         "allowRawCodes": true,
-        "codeOverrides": {},
-        "verification": "unverified"
+        "codeOverrides": {}
     }
 }

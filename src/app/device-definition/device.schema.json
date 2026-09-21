@@ -106,15 +106,14 @@
     "dataSources": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["catalog", "policy", "include", "exclude", "allowRawCodes", "codeOverrides", "verification"],
+      "required": ["catalog", "policy", "include", "exclude", "allowRawCodes", "codeOverrides"],
       "properties": {
         "catalog": { "type": "string", "minLength": 1 },
         "policy": { "enum": ["all-known", "allow-list"] },
         "include": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "exclude": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
         "allowRawCodes": { "type": "boolean" },
-        "codeOverrides": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^[0-9a-fA-F]{4}$" } },
-        "verification": { "enum": ["verified", "unverified"] }
+        "codeOverrides": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^[0-9a-fA-F]{4}$" } }
       }
     }
   },

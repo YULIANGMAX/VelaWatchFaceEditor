@@ -158,7 +158,7 @@ const DATA_SOURCE_CATALOGS = parseDataSourceCatalogs();
 
 function parseDataSources(value: unknown, location: string): DeviceDataSourceDefinition {
   assertObject(value, location);
-  assertKeys(value, ["catalog", "policy", "include", "exclude", "allowRawCodes", "codeOverrides", "verification"], location);
+  assertKeys(value, ["catalog", "policy", "include", "exclude", "allowRawCodes", "codeOverrides"], location);
   assertString(value.catalog, `${location}.catalog`);
   const catalog = DATA_SOURCE_CATALOGS[value.catalog];
   if (!catalog) throw new Error(`${location}.catalog 引用了不存在的数据源目录 ${value.catalog}`);
@@ -177,9 +177,6 @@ function parseDataSources(value: unknown, location: string): DeviceDataSourceDef
     assertHex(code, 2, `${location}.codeOverrides.${name}`);
     codeOverrides[name] = code.toUpperCase();
   }
-  if (value.verification !== "verified" && value.verification !== "unverified") {
-    throw new Error(`${location}.verification 只能是 verified 或 unverified`);
-  }
   if (value.policy === "allow-list" && include.length === 0) {
     throw new Error(`${location}.policy 为 allow-list 时 include 不得为空`);
   }
@@ -196,7 +193,6 @@ function parseDataSources(value: unknown, location: string): DeviceDataSourceDef
     allowRawCodes: value.allowRawCodes,
     codeOverrides,
     codes,
-    verification: value.verification,
   };
 }
 
