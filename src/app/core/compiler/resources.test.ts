@@ -101,16 +101,29 @@ describe("数据资源通用编码", () => {
     expect(bytes[18]).toBe(1);
   });
 
-  it("写入系统文本的刷新周期和高度", () => {
+  it("写入系统文本的刷新周期、宽高和字间距", () => {
     const resource: WatchfaceResource = {
       id: "text",
       type: "DataItemText",
-      attrs: { name: "Text1", parameter: "250", w: "80", h: "31", string: "%d" },
+      attrs: {
+        name: "Text1",
+        parameter: "250",
+        fontId: "misans",
+        fontWeight: "regular",
+        letterSpace: "20",
+        w: "320",
+        h: "40",
+        string: "%d",
+      },
       children: [{ id: "content", attrs: { source: "timeHour" } }],
     };
     const bytes = encodeDataResource(resource, () => ({ index: 0, type: 0 }), getDeviceDefinition("P65").dataSources);
 
     expect(Array.from(bytes.subarray(6, 8))).toEqual([250, 0]);
-    expect(Array.from(bytes.subarray(22, 24))).toEqual([124, 0]);
+    // letterSpace=20 packed into bits 10..15 of uint16 at 13 (0x51c3 -> [195, 81])
+    expect(bytes[13]).toBe(195);
+    expect(bytes[14]).toBe(81);
+    // w=320, h=40 packed into uint32 at 20 (0x00a14000 -> [0x00, 0x40, 0xa1, 0x00])
+    expect(Array.from(bytes.subarray(20, 24))).toEqual([0, 0x40, 0xa1, 0]);
   });
 });

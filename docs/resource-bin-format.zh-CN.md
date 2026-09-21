@@ -154,7 +154,72 @@ E0 21 A5 5A
 
 ---
 
-## 8. 编译一致性保证
+---
+
+## 8. 核心数据项（Type 7 `DataItem*`）体系与二进制布局
+
+### 8.1 架构定位与设计哲学
+
+在 Xiaomi Vela 表盘固件架构中，**Type 7 是唯一负责将实时数据（时间、日期、步数、心率、电量、天气等）渲染至屏幕的核心数据消费层**。
+
+- **为什么叫 Type 7？**
+  固件内部不识别复杂的 XML 标签名，而是将所有具备「数据源驱动」特性的组件，统一分配资源类型码 `0x07`。无论是数字、文本、指针还是进度条，在底层解析器眼中皆为 Type 7 实例。
+- **Type 7 家族包含哪些 XML 组件？**
+  1. `<DataItemText>`：调用内置矢量/点阵字模排版的动态文本（支持单行、折行与弧形）；
+  2. `<DataItemImageNumber>`：以切片序列帧渲染的多位数字（如时间大字、计步数值）；
+  3. `<DataItemImageValues>`：按离散状态映射图标的切图（如天气图标、蓝牙开关状态）；
+  4. `<DataItemPointer>`：围绕指定锚点随数值旋转的模拟指针（时针、分针、秒针）；
+  5. `<DataItemProgressBar>`（`<DataItemArcProgressBar>` / `<DataItemLineProgressBar>`）：线形或圆弧轨迹进度条。
+
+- **通用头部协议（前 8 字节）**：
+  所有 Type 7 载荷均共享统一的前 8 字节结构：
+  - `+0x00 ~ +0x05`（6 字节）：主数据源绑定（DataSource Code，如 `timeMinute`、`stepCurrent` 等）；
+  - `+0x06 ~ +0x07`（2 字节，`u16` Little-Endian）：刷新周期与动画插值参数（`parameter`，默认 1000ms）。
+
+---
+
+### 8.2 `DataItemText` 文本载荷二进制完整位域
+
+`DataItemText` 载荷固定头部为 48 字节（`0x30`），其后紧跟 UTF-8 格式字符串与子级数据源编码数组：
+
+```
++0x00 ~ +0x05: 基础数据源绑定 (6 字节 DataSource Code)
++0x06 ~ +0x07: 动画参数 / 刷新周期 (u16, parameter, 默认 1000)
++0x08 ~ +0x0A: 文本颜色 (3 字节, BGR 顺序, 如 #FF4444 存为 44 44 FF)
++0x0B:         不透明度 (u8, 0~64 硬件标定值，由 opacity 0~100 线性映射)
++0x0C:         字号 (u8, fontSize, 单位像素)
++0x0D ~ +0x0E: 字体/字重/字间距复合位域 (u16, Little-Endian):
+               - bits 0..5:   fontId (misanslatin=0, misansw=1, misanstc=2, misans=3, notosans=5)
+               - bits 6..9:   fontWeight (bold=0, regular=7 等)
+               - bits 10..15: letterSpace (字间距，0~63 像素，官方标准编码)
++0x10:         排版/对齐/溢出模式复合位域 (u8):
+               - bits 0..2: align (left=0, center=1, right=2)
+               - bits 3..5: longMode (wrap=0, dots=1, scroll=2, scroll_circular=3, clip=4)
+               - bit 6:     isArc (普通矩形=0, 弧形排版=1)
++0x14 ~ +0x1B: 布局形态专属区段 (8 字节):
+               [普通矩形 style="normal"]
+               - +0x14: 复合位域 (u32, Little-Endian):
+                 * bits 0..7:   lineSpace (行间距，0~255 像素)
+                 * bits 8..17:  w (文本区域宽度，10 位无符号数，最大 1023 像素)
+                 * bits 18..27: h (文本区域高度，10 位无符号数，最大 1023 像素)
+               - +0x18: rotation (i16, 旋转角 * 10)
+               - +0x1A: 保留补齐 (2 字节全零)
+               [弧形排版 style="arc"]
+               - +0x14: radius (u8, 基准半径像素)
+               - +0x15: verticalAlign (u8 径向对齐: top=0 外圈, center=4 中圈, bottom=8 内圈)
+               - +0x18: startAngle (i16, 起始极角 * 10)
+               - +0x1A: span (i16, 覆盖跨度角 * 10)
++0x2C ~ +0x2F: 格式串与子数据源计数 (u32, Little-Endian):
+               - bits 0..7:  formatLength (格式字符串 UTF-8 字符字节数)
+               - bits 8..15: sourcesCount (子级 <Content> 数据源引用个数)
++0x30 ~ ...:   变长数据体:
+               - format 字符串原文 (UTF-8 字符流，长度为 formatLength)
+               - 各子级数据源编码 (每个 2 字节，紧随字符串后依次排列)
+```
+
+---
+
+## 9. 编译一致性保证
 
 本编译器遵循以下不可变原则：
 1. **纯正官方布局**：全盘采用官方绝对偏移、FaceHeader 结构与载荷排序，不夹杂任何过时第三方工具的私有结构；

@@ -28,7 +28,7 @@ import {
   type FieldDefinition,
   type ResourceDefinition,
 } from "../editor/manifestEditorSchema";
-import { isDataSourceSupported } from "../device-definition";
+import { getDataSourceValidationError } from "../core/validation";
 import { DATA_SOURCE_LABELS } from "../device-definition/dataSourceLabels";
 import { measureResource } from "../core/measure";
 import { isDeviceAttributeEditable, isDeviceResourceEditable } from "../editor/deviceEditorCapabilities";
@@ -816,8 +816,9 @@ const ChildItemCard = memo(function ChildItemCard({
     }
     if (field.kind === "dataSource") {
       const options = Object.entries(getDeviceProfile(project.device).dataSources.codes).map(([name, code]) => ({ value: name, label: DATA_SOURCE_LABELS[name] ?? name, detail: `${name} · ${code}` }));
+      const error = getDataSourceValidationError(project.device, value, field.key);
       return (
-        <div className="data-source-input">
+        <div className={`data-source-input${error ? " has-error" : ""}`}>
           <ComboboxInput
             value={value}
             options={options}
@@ -825,7 +826,7 @@ const ChildItemCard = memo(function ChildItemCard({
             placeholder={field.required ? "必填" : "输入或选择数据源"}
             onChange={set}
           />
-          {value && !isDataSourceSupported(project.device, value) ? <small>当前设备可能不支持此数据源。</small> : null}
+          {error ? <small className="field-error-inline">{error.message}</small> : null}
         </div>
       );
     }

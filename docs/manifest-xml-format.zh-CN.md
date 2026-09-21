@@ -203,6 +203,10 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 
 `DataItem*` 从设备指标读取时间、日期、步数、心率、血氧、天气等数据。
 
+> 💡 **底层架构映射（Type 7 数据项体系）**：
+> 手表固件（Vela RTOS）在底层运行时并不直接解析 XML，而是直接解析打包出的 `resource.bin` 二进制文件。在二进制架构中，所有以 `DataItem` 开头的动态数据驱动组件（`DataItemText`、`DataItemImageNumber`、`DataItemImageValues`、`DataItemPointer`、`DataItemProgressBar`），**在底层统一归纳编译为「Type 7 核心数据载荷」（Data Item Payload）**。
+> 它们的载荷结构拥有统一的头部：前 6 字节记录绑定的传感器/指标数据源编码（DataSource Code），`0x06~0x07` 记录刷新周期与动画参数（`parameter`）。详细的物理二进制结构参见 [resource-bin-format.zh-CN.md](./resource-bin-format.zh-CN.md#8-核心数据项type-7文本载荷二进制布局)。
+
 `source` 可以写指标名称，例如 `timeHour`；也可以写不带 `0x` 前缀的十六进制指标代码，例如 `1108`。不同设备支持的指标集合可能不同。
 
 ### 5.1 通用属性
@@ -252,27 +256,35 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 - `fontSize`：字号。
 - `fontId`：字体标识。常见系统字体包括 `misanslatin`、`misansw`、`misanstc`、`misans`、`notosans` 等。
 - `fontWeight`：字重。支持 `bold`、`demibold`、`extralight`、`heavy`、`light`、`medium`、`normal`、`regular`、`semibold`、`thin` 等标准字重。
-- `letterSpace`：字间距。
-- `longMode`：文本超出区域时的处理方式。
-  - `wrap`：换行。
-  - `dots`：用省略号截断（默认值）。
-  - `scroll`、`scroll_circular`：滚动。
-  - `clip`：直接裁剪。
-- `style`：`normal` 为普通布局，`arc` 为沿弧线布局。
+- `letterSpace`：字间距（单位：像素，整数）。真实参与字符间距测算并累加排版总宽度；若超出指定宽度限制，将依 `longMode` 触发截断。
+- `longMode`：文本超出区域时的处理方式（物理实测完全确认）：
+  - `dots`：末尾用省略号（`...`）截断（默认值）。
+  - `wrap`：达到宽度边界后自动折行多行呈现。
+  - `scroll`：**往返滚动**，单行文本向左匀速平移，至末端往返弹跳。
+  - `scroll_circular`：**跑马灯循环**，单行文本向左平移，首尾相接无缝循环滚动。
+  - `clip`：硬裁剪，超出部分直接切除。
+  - *注：数据源数值变动刷新时，滚动动画将重置回起点重新播放。*
+- `style`：`normal` 为普通矩形框布局，`arc` 为沿圆弧轨迹布局。
 - `string`：格式字符串，可以包含 `printf` 风格的 `%d`、`%s`。
 
 `style="normal"` 时还可使用：
 
-- `lineSpace`：行间距，精确行为仍待研究。
-- `w`、`h`：文本区域宽高。
-- `rotation`：旋转角度。
+- `lineSpace`：行间距（单位：像素，物理实测完全确认）。仅在 `longMode="wrap"` 发生多行折行时生效：
+  - 首行基准：首行垂直位置严格固定（基准线齐平），不受 `lineSpace` 增减影响；
+  - 后续行下沉：自第二行起，随 `lineSpace` 增加而逐行下沉（即每行追加指定像素间距）；
+  - 基础行距：`lineSpace="0"` 时呈现系统字体的自然行隙（约 1.38 倍字号）。
+- `w`、`h`：文本排版区域的宽高边界。
+- `rotation`：整体文本矩形框的旋转角度。
 
 `style="arc"` 时还可使用：
 
-- `radius`：文本弧线所在圆的半径。
-- `verticalAlign`：`top`、`center`、`bottom`，精确行为仍待研究。
-- `startAngle`：起始角度。
-- `span`：文本覆盖的角度范围。
+- `radius`：文本弧线所在圆的基准半径（像素）。
+- `verticalAlign`：圆弧径向对齐方式（物理实测完全确认）：
+  - `top`：文字位于圆弧**最外圈（Outer）**；
+  - `center`：文字沿基准圆弧**居中对齐（Center）**；
+  - `bottom`：文字位于圆弧**最内圈（Inner）**。内圈因有效半径变小（$R - \text{fontSize}$），可用弧长缩窄，易触发省略截断。
+- `startAngle`：起始极角（度数）。
+- `span`：圆弧覆盖的角度范围（度数）。
 
 ### 5.3 `DataItemImageNumber`
 

@@ -55,7 +55,7 @@ import {
   setWorkspaceValue,
   type RecentProjectDirectory,
 } from "./core/recentProject";
-import { validateProject } from "./core/validation";
+import { sortDiagnostics, validateProject } from "./core/validation";
 import { parseManifest, serializeManifest } from "./core/xml";
 import { useEditorStore } from "./store/editorStore";
 import { dialogManager } from "./core/dialog";
@@ -117,7 +117,7 @@ export function App() {
   const [xmlDraft, setXmlDraft] = useState("");
   const [xmlDiagnostics, setXmlDiagnostics] = useState<Diagnostic[]>([]);
   const diagnostics = useMemo(
-    () => [...parseDiagnostics, ...validateProject(project)],
+    () => sortDiagnostics([...parseDiagnostics, ...validateProject(project)]),
     [parseDiagnostics, project],
   );
   const errorCount = diagnostics.filter((entry) => entry.severity === "error").length;

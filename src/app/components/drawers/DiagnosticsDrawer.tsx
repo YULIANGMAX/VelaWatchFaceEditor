@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ShieldCheck, X } from "lucide-react";
 import { useEditorStore } from "../../store/editorStore";
 import { findDiagnosticTarget } from "../../core/diagnosticNavigation";
+import { sortDiagnostics } from "../../core/validation";
 import type { Diagnostic, WatchfaceProject } from "../../core/model";
 
 interface DiagnosticsDrawerProps {
@@ -21,15 +22,17 @@ export function DiagnosticsDrawer({
   const setSelectedTheme = useEditorStore((state) => state.setSelectedTheme);
   const [severityFilter, setSeverityFilter] = useState<Diagnostic["severity"] | null>(null);
 
+  const sortedDiagnostics = useMemo(() => sortDiagnostics(diagnostics), [diagnostics]);
+
   if (!open) return null;
 
   const groups = {
-    error: diagnostics.filter((entry) => entry.severity === "error"),
-    warning: diagnostics.filter((entry) => entry.severity === "warning"),
-    info: diagnostics.filter((entry) => entry.severity === "info"),
+    error: sortedDiagnostics.filter((entry) => entry.severity === "error"),
+    warning: sortedDiagnostics.filter((entry) => entry.severity === "warning"),
+    info: sortedDiagnostics.filter((entry) => entry.severity === "info"),
   };
 
-  const visibleDiagnostics = severityFilter ? groups[severityFilter] : diagnostics;
+  const visibleDiagnostics = severityFilter ? groups[severityFilter] : sortedDiagnostics;
 
   const navigate = (diagnostic: Diagnostic) => {
     const target = findDiagnosticTarget(project, diagnostic.location);

@@ -30,6 +30,41 @@ import {
 const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 const DATA_SOURCE_PATTERN = /^(?:[A-Za-z][A-Za-z0-9]*|[0-9a-fA-F]+)$/;
 
+export const SEVERITY_ORDER: Record<Diagnostic["severity"], number> = {
+  error: 0,
+  warning: 1,
+  info: 2,
+};
+
+export function sortDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
+  return [...diagnostics].sort((a, b) => {
+    const orderA = SEVERITY_ORDER[a.severity] ?? 99;
+    const orderB = SEVERITY_ORDER[b.severity] ?? 99;
+    return orderA - orderB;
+  });
+}
+
+export function getDataSourceValidationError(
+  device: DeviceType,
+  value: string,
+  fieldKey = "source",
+): { code: string; message: string } | null {
+  if (!value) return null;
+  if (!DATA_SOURCE_PATTERN.test(value)) {
+    return { code: "invalid-data-source", message: `${fieldKey} 必须为指标名称或不带 0x 的十六进制代码` };
+  }
+  if (/^[0-9a-fA-F]+$/.test(value) && value.length % 2 !== 0) {
+    return { code: "odd-length-data-source", message: `${fieldKey} 的十六进制代码必须为偶数长度` };
+  }
+  if (/^[A-Za-z]/.test(value) && !getDeviceProfile(device).dataSources.codes[value]) {
+    return { code: "unknown-data-source", message: `未知数据源 ${value}` };
+  }
+  if (!isDataSourceSupported(device, value)) {
+    return { code: "unsupported-device-data-source", message: `设备 ${device} 不支持数据源 ${value}` };
+  }
+  return null;
+}
+
 function item(
   severity: Diagnostic["severity"],
   code: string,
@@ -139,17 +174,11 @@ function validateFields(
     if (field.pattern && !new RegExp(field.pattern).test(value)) {
       diagnostics.push(item("error", field.patternErrorCode ?? "invalid-pattern", field.patternErrorMessage ?? `${field.key} 格式无效`, location));
     }
-    if (field.type === "dataSource" && !DATA_SOURCE_PATTERN.test(value)) {
-      diagnostics.push(item("error", "invalid-data-source", `${field.key} 必须为指标名称或不带 0x 的十六进制代码`, location));
-    } else if (field.type === "dataSource"
-      && /^[0-9a-fA-F]+$/.test(value) && value.length % 2 !== 0) {
-      diagnostics.push(item("error", "odd-length-data-source", `${field.key} 的十六进制代码必须为偶数长度`, location));
-    } else if (field.type === "dataSource"
-      && /^[A-Za-z]/.test(value) && !getDeviceProfile(device).dataSources.codes[value]) {
-      diagnostics.push(item("error", "unknown-data-source", `未知数据源 ${value}`, location));
-    } else if (field.type === "dataSource"
-      && !isDataSourceSupported(device, value)) {
-      diagnostics.push(item("error", "unsupported-device-data-source", `设备 ${device} 不支持数据源 ${value}`, location));
+    if (field.type === "dataSource") {
+      const err = getDataSourceValidationError(device, value, field.key);
+      if (err) {
+        diagnostics.push(item("error", err.code, err.message, location));
+      }
     }
   }
   return diagnostics;
@@ -362,5 +391,5 @@ export function validateProject(project: WatchfaceProject): Diagnostic[] {
   for (const path of Object.keys(project.assets)) {
     if (!usedAssets.has(path)) diagnostics.push(item("info", "unused-asset", `文件未被 manifest.xml 引用：${path}`, "项目文件"));
   }
-  return diagnostics;
+  return sortDiagnostics(diagnostics);
 }

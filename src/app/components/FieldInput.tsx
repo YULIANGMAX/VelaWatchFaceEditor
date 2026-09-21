@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { ArrowUpRight, Calculator, ChevronDown, ChevronRight, File, Folder, RefreshCw, Search, X } from "lucide-react";
 import { RESOURCE_DEFINITION_MAP, type FieldDefinition } from "../editor/manifestEditorSchema";
 import { generateWatchfaceId, getDeviceProfile, isPreviewResource, normalizePath, refName, type Attributes, type WatchfaceProject, type WatchfaceResource } from "../core/model";
-import { getManifestAttributeAllowedValues, isDataSourceSupported } from "../device-definition";
+import { getManifestAttributeAllowedValues } from "../device-definition";
+import { getDataSourceValidationError } from "../core/validation";
 import { DATA_SOURCE_LABELS } from "../device-definition/dataSourceLabels";
 import { useEditorStore } from "../store/editorStore";
 import { measureResource } from "../core/measure";
@@ -674,9 +675,9 @@ export function FieldInput({
     if (field.kind === "dataSource") {
       const sources = getDeviceProfile(project.device).dataSources.codes;
       const options = Object.entries(sources).map(([name, code]) => ({ value: name, label: DATA_SOURCE_LABELS[name] ?? name, detail: `${name} · ${code}` }));
-      const supported = !value || isDataSourceSupported(project.device, value);
+      const error = getDataSourceValidationError(project.device, value, field.key);
       return (
-        <div className="data-source-input">
+        <div className={`data-source-input${error ? " has-error" : ""}`}>
           <ComboboxInput
             id={id}
             value={value}
@@ -685,7 +686,7 @@ export function FieldInput({
             placeholder={field.required ? "必填" : "输入或选择数据源"}
             onChange={onChange}
           />
-          {value && !supported ? <small className="field-error-inline">当前设备可能不支持此数据源。</small> : null}
+          {error ? <small className="field-error-inline">{error.message}</small> : null}
         </div>
       );
     }

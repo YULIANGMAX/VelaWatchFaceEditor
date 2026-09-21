@@ -200,7 +200,7 @@ function encodeText(resource: WatchfaceResource, codes: DataSourceCodes): Uint8A
   writeUint16(result, 13,
     (FONT_IDS[resource.attrs.fontId ?? "misanslatin"] ?? 0)
     | ((FONT_WEIGHTS[resource.attrs.fontWeight ?? "bold"] ?? 0) << 6)
-    | (sources.length << 9));
+    | ((numberValue(resource.attrs.letterSpace) & 0x3f) << 10));
   const isArc = resource.attrs.style === "arc";
   result[16] = (TEXT_ALIGN_CODES[resource.attrs.align ?? "left"] ?? 0)
     | ((LONG_MODES[resource.attrs.longMode ?? "dots"] ?? 1) << 3)
@@ -211,9 +211,10 @@ function encodeText(resource: WatchfaceResource, codes: DataSourceCodes): Uint8A
     writeInt16(result, 24, Math.round(numberValue(resource.attrs.startAngle) * 10));
     writeInt16(result, 26, Math.round(numberValue(resource.attrs.span) * 10));
   } else {
-    result[20] = numberValue(resource.attrs.lineSpace) & 0xff;
-    result[21] = numberValue(resource.attrs.w) & 0xff;
-    writeUint16(result, 22, Math.round(numberValue(resource.attrs.h) * 4));
+    const lineSpace = numberValue(resource.attrs.lineSpace) & 0xff;
+    const w = numberValue(resource.attrs.w) & 0x3ff;
+    const h = numberValue(resource.attrs.h) & 0x3ff;
+    writeUint32(result, 20, lineSpace | (w << 8) | (h << 18));
     writeInt16(result, 24, Math.round(numberValue(resource.attrs.rotation) * 10));
   }
   writeUint32(result, 44, format.length | (sources.length << 8));
