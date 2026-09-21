@@ -49,6 +49,7 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
     );
 
   const maskId = `progress-mask-${resource.id}`;
+  const indicatorClipId = `progress-indicator-clip-${resource.id}`;
   const indicator = resource.attrs.indicatorImage
     ? findResource(project, refName(resource.attrs.indicatorImage), preview.color)
     : undefined;
@@ -127,6 +128,10 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
               />
             ) : null}
           </mask>
+          <clipPath id={indicatorClipId}>
+            {/* 真机实测：组件坐标系原点 (0, 0) 为硬边界，x < 0 与 y < 0 均会被固件裁切，下方及右侧保留 */}
+            <rect x="0" y="0" width="20000" height="20000" />
+          </clipPath>
         </defs>
         <image href={asset.url} width={width} height={height} mask={`url(#${maskId})`} />
         {indicatorAsset ? (
@@ -136,6 +141,7 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
             y={point.y - indicatorHeight / 2}
             width={indicatorWidth}
             height={indicatorHeight}
+            clipPath={arc ? undefined : `url(#${indicatorClipId})`}
             transform={arc ? `rotate(${indicatorAngle} ${point.x} ${point.y})` : undefined}
           />
         ) : null}

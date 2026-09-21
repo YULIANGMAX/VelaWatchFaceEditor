@@ -427,9 +427,11 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 - `startX`、`startY`：进度线在 `ref` 图片上的起点。
 - `endX`、`endY`：终点。
 - `barWidth`：线宽。
-- `endingStyle`：`normal` 或 `round`。
-- `indicatorImage`：可选的当前值指示图片。
-- `offsetX`、`offsetY`：可选，微调显示偏移量。
+- `endingStyle`：端点样式，可选 `normal`（默认，平直切平）或 `round`（半圆头圆角），编译写入 Type 0x22 载荷 `+0x10` 标志位的 Bit 0。
+- `indicatorImage`：可选的当前值指示图片。以自身中心点跟随当前进度位置移动。
+- `offsetX`、`offsetY`：可选，指示图片叠加的物理偏移量（像素，支持带符号整数，二进制写入 Type 0x22 相对偏移 `+0x2C` / `+0x2E`）。
+  - **坐标与基准**：以当前进度在起点 `(startX, startY)` 至终点 `(endX, endY)` 之间插值得到的物理坐标 $(x, y)$ 为锚点，指示图片的中心点定位于 $(x + \text{offsetX}, y + \text{offsetY})$，左上角绘制点为 $(x + \text{offsetX} - w/2, y + \text{offsetY} - h/2)$。平移方向恒为直角笛卡尔坐标系下的屏幕绝对 X 轴向右、Y 轴向下，不随非水平（垂直或倾斜）进度条的切线角度偏转。
+  - **真机硬边界裁剪**：真机固件绘图上下文以组件自身坐标原点 `(0, 0)` 为绝对硬边界。当指示器居于起点或叠加负向偏移导致计算出的像素坐标 $< 0$ 时，超出 `(0, 0)` 的左侧与顶部半边会被真机固件硬性裁切；而在正坐标空间（$x \ge 0, y \ge 0$）内，固件不会因超出标称图宽高而提前截断。
 
 ## 6. `Slot` 与 `Widget`
 
@@ -597,9 +599,10 @@ perpetualcalendar, amap, intercom, navigation, research, wechat
 |---|---:|---:|---:|
 | 文档明确的标签、属性、枚举与引用 | 完整 | 严格 | 按已知语义 |
 | 图片数字、区间图片、指针、Sprite、Widget | 完整 | 严格 | 支持 |
-| 普通文本、圆弧文本、两种进度条 | 完整 | 严格 | 支持；待研究参数仅近似 |
+| 进度条（含指示器旋转、`indicatorRadius`、`offsetX/Y` 与原点裁剪） | 完整 | 严格 | 完全支持，与真机实测一致 |
+| 普通文本、圆弧文本（待研究参数仅近似） | 完整 | 严格 | 支持；`letterSpace`、`lineSpace`、`verticalAlign` 近似模拟 |
 | `Translation`、`File`、`appWidget`、`dualTime` | 完整 | 严格 | 设备占位，不伪造系统效果 |
-| `letterSpace`、`lineSpace`、`verticalAlign`、`indicatorRadius`、`offsetX/Y` 等待验证语义 | 无损 | 结构与类型 | 标记为近似或未模拟 |
+| `letterSpace`、`lineSpace`、`verticalAlign` 等文本待验证语义 | 无损 | 结构与类型 | 标记为近似或未模拟 |
 | P65 样本已观测官方属性 | 完整 | 按设备 JSON 限值 | 设备专属字段明确提示 |
 | 未知属性和未知元素 | 无损往返 | 构建阻断 | 不支持 |
 

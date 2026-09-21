@@ -899,8 +899,7 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "indicatorImage",
           "label": "指示图片",
-          "control": "reference",
-          "previewSupport": "partial"
+          "control": "reference"
         },
         {
           "key": "startX",
@@ -930,14 +929,12 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "offsetX",
           "label": "指示偏移 X",
-          "control": "number",
-          "previewSupport": "partial"
+          "control": "number"
         },
         {
           "key": "offsetY",
           "label": "指示偏移 Y",
-          "control": "number",
-          "previewSupport": "partial"
+          "control": "number"
         }
       ]
     },
