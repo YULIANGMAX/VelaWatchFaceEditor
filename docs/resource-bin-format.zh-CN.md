@@ -190,7 +190,9 @@ E0 21 A5 5A
 +0x0C:         字号 (u8, fontSize, 单位像素)
 +0x0D ~ +0x0E: 字体/字重/字间距复合位域 (u16, Little-Endian):
                - bits 0..5:   fontId (misanslatin=0, misansw=1, misanstc=2, misans=3, notosans=5)
-               - bits 6..9:   fontWeight (bold=0, regular=7 等)
+               - bits 6..9:   fontWeight（字重，共 4 位，取值 0~9，缺省默认为 0 即 bold）:
+                              * `0`: bold, `1`: demibold, `2`: extralight, `3`: heavy, `4`: light
+                              * `5`: medium, `6`: normal, `7`: regular, `8`: semibold, `9`: thin
                - bits 10..15: letterSpace (字间距，0~63 像素，官方标准编码)
 +0x10:         排版/对齐/溢出模式复合位域 (u8):
                - bits 0..2: align (left=0, center=1, right=2)

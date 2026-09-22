@@ -255,7 +255,9 @@ cs_CZ, uk_UA, hu_HU, sk_SK, zh_HK, iw_IL, ar_EG
 - `opacity`：不透明度，`0` 至 `100`，默认 `100`。
 - `fontSize`：字号。
 - `fontId`：字体标识。常见系统字体包括 `misanslatin`、`misansw`、`misanstc`、`misans`、`notosans` 等。
-- `fontWeight`：字重。支持 `bold`、`demibold`、`extralight`、`heavy`、`light`、`medium`、`normal`、`regular`、`semibold`、`thin` 等标准字重。
+- `fontWeight`：字重（粗细）。支持 10 种标准字重：`bold`、`demibold`、`extralight`、`heavy`、`light`、`medium`、`normal`、`regular`、`semibold`、`thin`。
+  - 缺省值：未显式指定时，默认视为 `bold`（底层映射码 `0`）。
+  - 设备固件差异说明：各手表/手环硬件平台的 ROM 字体引擎因包体积考量，所内嵌字模轮廓集可能不同；部分轻量设备（如红米手表 6 / P65）固件仅烧录了单套常规字模轮廓，因而在显示上各字重无肉眼粗细差异，此属设备固件字体库配置差异，底层 BIN 位域与编译写入标准已获全面确认。
 - `letterSpace`：字间距（单位：像素，整数）。真实参与字符间距测算并累加排版总宽度；若超出指定宽度限制，将依 `longMode` 触发截断。
 - `longMode`：文本超出区域时的处理方式（物理实测完全确认）：
   - `dots`：末尾用省略号（`...`）截断（默认值）。
