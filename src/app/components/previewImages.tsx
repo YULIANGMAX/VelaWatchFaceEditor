@@ -1,6 +1,7 @@
 import { createRoot, type Root } from "react-dom/client";
 import { getDeviceDefinition, getResourceName, refName, type WatchfacePreviewContext, type WatchfaceProject } from "../core/model";
 import { ResourceRenderer } from "./ResourceRenderer";
+import { layoutAnchorTransform } from "./CanvasStage";
 
 export interface ThemePreviewImage {
   themeId: string;
@@ -186,7 +187,7 @@ export async function generateThemePreviews(project: WatchfaceProject): Promise<
               const resourceName = refName(layout.attrs.ref);
               const resource = project.resources.find((entry) => getResourceName(entry) === resourceName);
               const align = resource?.attrs.align;
-              const anchor = align === "right" ? "translateX(-100%)" : align === "center" ? "translateX(-50%)" : undefined;
+              const anchor = layoutAnchorTransform(align, resource?.type);
               return (
                 <div
                   className="layout-node"
@@ -198,7 +199,7 @@ export async function generateThemePreviews(project: WatchfaceProject): Promise<
                     transform: anchor,
                   }}
                 >
-                  <ResourceRenderer project={project} resourceName={resourceName} now={now} preview={preview} />
+                  <ResourceRenderer project={project} resource={resource} resourceName={resourceName} now={now} preview={preview} />
                 </div>
               );
             })}
