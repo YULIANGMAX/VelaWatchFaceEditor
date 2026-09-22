@@ -481,7 +481,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
+          "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -571,7 +571,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
+          "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -637,7 +637,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
+          "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -733,7 +733,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
+          "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",
@@ -859,7 +859,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "control": "boolean",
           "section": "common",
           "previewSupport": "device",
-          "help": "仅在根节点配置 recolorTable 且引用素材开启「允许换色」时有效。"
+          "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
           "key": "ref",

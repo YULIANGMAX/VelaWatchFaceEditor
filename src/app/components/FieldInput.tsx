@@ -520,12 +520,12 @@ export function FieldInput({
       if (field.key === "recolorEnable") {
         if (!hasRecolorTable) {
           recolorBlocked = true;
-          recolorBlockedReason = "需先在表盘配置 recolorTable";
+          recolorBlockedReason = "需先在表盘配置「动态颜色表」";
         }
       } else if (field.key === "supportRecolor") {
         if (!hasRecolorTable) {
           recolorBlocked = true;
-          recolorBlockedReason = "需先在表盘配置 recolorTable";
+          recolorBlockedReason = "需先在表盘配置「动态颜色表」";
         } else if (!resourceAttrs?.ref?.trim()) {
           recolorBlocked = true;
           recolorBlockedReason = "需先指定引用素材";

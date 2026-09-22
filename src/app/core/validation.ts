@@ -270,7 +270,7 @@ function validateResource(
 
   if (resource.attrs.supportRecolor === "true") {
     if (!project.watchface.recolorTable?.trim()) {
-      diagnostics.push(item("error", "missing-recolor-table", "启用 supportRecolor 需要在 Watchface 中定义 recolorTable", location));
+      diagnostics.push(item("error", "missing-recolor-table", "启用 supportRecolor 需要在表盘根节点配置「动态颜色表」(recolorTable)", location));
     }
     const target = resourcesOfTypes(resourcesByName, resource.attrs.ref, ["Image", "ImageArray"])[0];
     if (target && target.attrs.recolorEnable !== "true") {
@@ -280,7 +280,7 @@ function validateResource(
 
   if ((resource.type === "Image" || resource.type === "ImageArray") && resource.attrs.recolorEnable === "true") {
     if (!project.watchface.recolorTable?.trim()) {
-      diagnostics.push(item("error", "missing-recolor-table", `资源 ${resource.attrs.name} 开启 recolorEnable 需要在 Watchface 中定义 recolorTable`, location));
+      diagnostics.push(item("error", "missing-recolor-table", `资源 ${resource.attrs.name} 开启 recolorEnable 需要在表盘根节点配置「动态颜色表」(recolorTable)`, location));
     }
   }
 
