@@ -26,6 +26,9 @@ interface IndexedResource {
   resource: WatchfaceResource;
   type: number;
   index: number;
+  variantIndex?: number;
+  colorGroupIndex?: number;
+  payloadKey: string;
 }
 
 interface Payload {
@@ -37,6 +40,7 @@ interface Payload {
 interface DescriptorPlan {
   id: number;
   type: number;
+  flags?: number;
   payloadKey: string;
 }
 
@@ -113,16 +117,16 @@ function compressionMethod(resource: WatchfaceResource): CompressionMethod {
 function parseColorTable(value: string | undefined, attribute: string): Uint8Array {
   if (!value?.trim()) return new Uint8Array();
   const colors = value.split(",").map((color) => color.trim());
-  const bytes = new Uint8Array(Math.ceil(colors.length * 3 / 4) * 4);
+  const bytes = new Uint8Array(colors.length * 4);
   colors.forEach((color) => {
     if (!/^#[0-9a-fA-F]{6}$/.test(color)) throw new Error(`${attribute} 包含无效颜色：${color}`);
   });
-  // 0.9.8 会记录表项数量，却以首色填充每一项；保持这一格式行为。
-  const first = colors[0]!;
   for (let index = 0; index < colors.length; index += 1) {
-    bytes[index * 3] = Number.parseInt(first.slice(5, 7), 16);
-    bytes[index * 3 + 1] = Number.parseInt(first.slice(3, 5), 16);
-    bytes[index * 3 + 2] = Number.parseInt(first.slice(1, 3), 16);
+    const color = colors[index]!;
+    bytes[index * 4] = Number.parseInt(color.slice(5, 7), 16);
+    bytes[index * 4 + 1] = Number.parseInt(color.slice(3, 5), 16);
+    bytes[index * 4 + 2] = Number.parseInt(color.slice(1, 3), 16);
+    bytes[index * 4 + 3] = 0;
   }
   return bytes;
 }
@@ -151,20 +155,78 @@ export function createCompileInput(project: WatchfaceProject): CompileInput {
   return buildInput(project);
 }
 
-function indexResources(resources: WatchfaceResource[]): { indexed: IndexedResource[]; byName: Map<string, IndexedResource> } {
+function indexResources(
+  resources: WatchfaceResource[],
+  colorGroupTable?: string,
+): { indexed: IndexedResource[]; byName: Map<string, IndexedResource>; allByName: Map<string, IndexedResource[]> } {
+  const colorGroups = (colorGroupTable ?? "")
+    .split(",")
+    .map((color) => color.trim().toLowerCase())
+    .filter(Boolean);
+
   const nextIndex = new Map<number, number>();
-  const indexed = resources.map((resource) => {
+  const nameIndexMap = new Map<string, number>();
+  const variantCounter = new Map<string, number>();
+  const allByName = new Map<string, IndexedResource[]>();
+
+  const indexed: IndexedResource[] = resources.map((resource) => {
     const type = TYPE_BY_RESOURCE[resource.type];
-    const index = nextIndex.get(type) ?? 0;
-    nextIndex.set(type, index + 1);
-    return { resource, type, index };
+    const name = resource.attrs.name;
+    const colorGroup = resource.attrs.colorGroup?.trim().toLowerCase();
+    const hasColorGroup = Boolean(colorGroup && colorGroups.includes(colorGroup));
+
+    let index: number;
+    let variantIndex: number | undefined;
+    let colorGroupIndex: number | undefined;
+
+    if (name && hasColorGroup) {
+      const key = `${type}:${name}`;
+      if (nameIndexMap.has(key)) {
+        index = nameIndexMap.get(key)!;
+        variantIndex = variantCounter.get(key)!;
+        variantCounter.set(key, variantIndex + 1);
+      } else {
+        index = nextIndex.get(type) ?? 0;
+        nextIndex.set(type, index + 1);
+        nameIndexMap.set(key, index);
+        variantIndex = 0;
+        variantCounter.set(key, 1);
+      }
+      colorGroupIndex = colorGroups.indexOf(colorGroup!);
+    } else {
+      index = nextIndex.get(type) ?? 0;
+      nextIndex.set(type, index + 1);
+    }
+
+    const payloadKey = variantIndex !== undefined
+      ? `resource:${type}:${index}:var:${variantIndex}`
+      : `resource:${type}:${index}`;
+
+    const entry: IndexedResource = {
+      resource,
+      type,
+      index,
+      variantIndex,
+      colorGroupIndex,
+      payloadKey,
+    };
+
+    if (name) {
+      const list = allByName.get(name) ?? [];
+      list.push(entry);
+      allByName.set(name, list);
+    }
+
+    return entry;
   });
+
   const byName = new Map<string, IndexedResource>();
   for (const entry of indexed) {
     const name = entry.resource.attrs.name;
     if (name && !byName.has(name)) byName.set(name, entry);
   }
-  return { indexed, byName };
+
+  return { indexed, byName, allByName };
 }
 
 function resourceReferences(resource: WatchfaceResource): string[] {
@@ -181,14 +243,17 @@ function resourceReferences(resource: WatchfaceResource): string[] {
 function reachableResources(
   roots: string[],
   byName: Map<string, IndexedResource>,
+  allByName: Map<string, IndexedResource[]>,
 ): IndexedResource[] {
   const result = new Set<IndexedResource>();
   const visit = (name: string): void => {
-    const entry = byName.get(name);
-    if (!entry) throw new Error(`引用了不存在的资源 @${name}`);
-    if (result.has(entry)) return;
-    result.add(entry);
-    for (const reference of resourceReferences(entry.resource)) visit(reference);
+    const entries = allByName.get(name);
+    if (!entries || entries.length === 0) throw new Error(`引用了不存在的资源 @${name}`);
+    for (const entry of entries) {
+      if (result.has(entry)) continue;
+      result.add(entry);
+      for (const reference of resourceReferences(entry.resource)) visit(reference);
+    }
   };
   for (const root of roots) visit(root);
   return [...result];
@@ -298,7 +363,7 @@ export async function compileWatchface(
     if (options.device.system !== "vela") throw new Error(`设备 ${options.device.deviceType} 不是 Vela 设备`);
     assertDeviceCapabilities(input, options);
     onProgress?.({ stage: "prepare", completed: 0, total: 1 });
-    const { indexed, byName } = indexResources(input.resources);
+    const { indexed, byName, allByName } = indexResources(input.resources, input.watchface.colorGroupTable);
     const resolveReference = (value: string | undefined, expectedType?: number): { index: number; type: number } => {
       const entry = byName.get(refName(value));
       if (!entry) throw new Error(`引用了不存在的资源 ${value ?? ""}`);
@@ -350,12 +415,12 @@ export async function compileWatchface(
       const recolor = resource.attrs.recolorEnable === "true";
       if (entry.type === 2) {
         const image = await decodeAsset(resource.attrs.src);
-        encodedResources.set(resourceKey(entry.type, entry.index), encodeSingleImageResource(image, await encodeAsset(resource.attrs.src, format, compression), recolor));
+        encodedResources.set(entry.payloadKey, encodeSingleImageResource(image, await encodeAsset(resource.attrs.src, format, compression), recolor));
       } else {
         const images = await Promise.all(resource.children.map((child) => decodeAsset(child.attrs.src)));
         const blocks = await Promise.all(resource.children.map((child) => encodeAsset(child.attrs.src, format, compression)));
         encodedResources.set(
-          resourceKey(entry.type, entry.index),
+          entry.payloadKey,
           encodeImageArrayResource(images, blocks, recolor),
         );
       }
@@ -391,7 +456,7 @@ export async function compileWatchface(
         }
         default: throw new Error(`尚未实现 ${resource.type} 的二进制编码`);
       }
-      encodedResources.set(resourceKey(entry.type, entry.index), bytes);
+      encodedResources.set(entry.payloadKey, bytes);
       encodedCount += 1;
       onProgress?.({ stage: "encode-resources", completed: encodedCount, total: input.resources.length });
     }
@@ -417,21 +482,22 @@ export async function compileWatchface(
         nextLayoutIndex += 1;
       });
       const reachable = reachableResources(
-        theme.layouts.map((layout) => refName(layout.attrs.ref)), byName,
+        theme.layouts.map((layout) => refName(layout.attrs.ref)), byName, allByName,
       );
       for (const entry of reachable) {
-        const key = resourceKey(entry.type, entry.index);
+        const key = entry.payloadKey;
         const encoded = encodedResources.get(key);
         if (!encoded) throw new Error(`尚未实现可达资源 ${entry.resource.attrs.name}（${entry.resource.type}）`);
         addPayload(key, encoded);
-        descriptors[entry.type].push({ id: entry.index, type: entry.type, payloadKey: key });
+        const flags = entry.colorGroupIndex !== undefined ? (entry.colorGroupIndex << 3) : 0;
+        descriptors[entry.type].push({ id: entry.index, type: entry.type, flags, payloadKey: key });
         if (entry.type === 5) {
           const duplicateKey = `${key}:face:${faceIndex}:args`;
           addPayload(duplicateKey, encoded.slice());
-          descriptors[entry.type].push({ id: entry.index, type: entry.type, payloadKey: duplicateKey });
+          descriptors[entry.type].push({ id: entry.index, type: entry.type, flags, payloadKey: duplicateKey });
         }
       }
-      for (const table of descriptors) table.sort((left, right) => left.id - right.id);
+      for (const table of descriptors) table.sort((left, right) => left.id - right.id || (left.flags ?? 0) - (right.flags ?? 0));
       const preview = theme.attrs.preview ? byName.get(refName(theme.attrs.preview)) : undefined;
       if (preview && preview.type !== 2) throw new Error(`Theme preview 必须引用 Image：${theme.attrs.preview}`);
       return {
@@ -447,7 +513,7 @@ export async function compileWatchface(
     if (input.watchface.name?.startsWith("@")) {
       const translatedName = byName.get(refName(input.watchface.name));
       if (!translatedName || translatedName.type !== 6) throw new Error("Watchface.name 必须引用 Translation");
-      const key = resourceKey(translatedName.type, translatedName.index);
+      const key = translatedName.payloadKey;
       const bytes = encodedResources.get(key);
       if (!bytes) throw new Error("找不到表盘名称 Translation 编码");
       addPayload(key, bytes);
@@ -455,7 +521,8 @@ export async function compileWatchface(
 
     for (const face of faces) {
       if (!face.previewKey || face.previewIndex === undefined) continue;
-      const bytes = encodedResources.get(resourceKey(2, face.previewIndex));
+      const previewEntry = indexed.find((entry) => entry.type === 2 && entry.index === face.previewIndex);
+      const bytes = previewEntry ? encodedResources.get(previewEntry.payloadKey) : undefined;
       if (!bytes) throw new Error("找不到 Theme 预览图编码");
       addPayload(face.previewKey, bytes);
     }
@@ -471,7 +538,7 @@ export async function compileWatchface(
       face.descriptors[0].forEach((descriptor) => appendPayload(descriptor.payloadKey));
     });
     for (const entry of indexed) {
-      appendPayload(resourceKey(entry.type, entry.index));
+      appendPayload(entry.payloadKey);
       faces.forEach((face) => {
         if (entry.type === 2 && face.previewIndex === entry.index && face.previewKey) appendPayload(face.previewKey);
       });
@@ -489,21 +556,32 @@ export async function compileWatchface(
     const descriptorCount = faces.reduce((sum, face) => sum + face.descriptors.reduce((faceSum, table) => faceSum + table.length, 0), 0);
     let payloadOffset = descriptorStart + descriptorCount * DESCRIPTOR_SIZE;
     for (const payload of orderedPayloads) {
+      payloadOffset = (payloadOffset + 3) & ~3;
       payload.offset = payloadOffset;
       payloadOffset += payload.bytes.length;
     }
+    payloadOffset = (payloadOffset + 3) & ~3;
 
     onProgress?.({ stage: "assemble", completed: 0, total: 1 });
     const output = new Uint8Array(payloadOffset);
     applyDeviceHeader(output, options);
     output[0x04] = projectVersionByte(input.projectVersion);
-    writeUint32(output, 0x18, recolorCount || colorGroupCount);
+    const totalColors = recolorCount || colorGroupCount;
+    writeUint32(output, 0x18, 0);
     output[0x1c] = faces.length;
-    output[0x1d] = recolorCount;
+    output[0x1d] = totalColors;
     const normalThemeCount = input.themes.filter((theme) => theme.attrs.type !== "AOD").length;
+    const hasColors = totalColors > 0;
+    const isEditable = input.watchface.editable === "true"
+      || input.watchface.editable === true
+      || hasColors
+      || indexed.some((entry) => entry.type === 8)
+      || normalThemeCount > 1;
+    const hasAod = faces.some((face) => face.aod);
     const combinationFlags = options.device.binary.header.combinationFlagsBase
-      | (indexed.some((entry) => entry.type === 8) || colorTable.length || normalThemeCount > 1 ? 2 : 0)
-      | (faces.some((face) => face.aod) ? 4 : 0);
+      | (hasColors ? 1 : 0)
+      | (isEditable ? 2 : 0)
+      | (hasAod ? 4 : 0);
     writeUint16(output, 0x1e, combinationFlags);
     const firstPreview = faces.find((face) => face.previewKey)?.previewKey;
     if (firstPreview) writeUint32(output, 0x20, payloadByKey.get(firstPreview)!.offset);
@@ -511,7 +589,8 @@ export async function compileWatchface(
     // 0x68 ~ 0xA7 (64 字节) 为表盘名称联合体：静态 UTF-8 字符串，或多语言 Translation 指针
     if (input.watchface.name?.startsWith("@")) {
       const translatedName = resolveReference(input.watchface.name, 6);
-      const namePayload = payloadByKey.get(resourceKey(6, translatedName.index));
+      const translatedEntry = indexed.find((entry) => entry.type === 6 && entry.index === translatedName.index);
+      const namePayload = translatedEntry ? payloadByKey.get(translatedEntry.payloadKey) : undefined;
       output.fill(0xff, 0x68, 0x6c);
       writeUint24(output, 0x6c, translatedName.index);
       output[0x6f] = 6;
@@ -542,6 +621,7 @@ export async function compileWatchface(
           const payload = payloadByKey.get(descriptor.payloadKey);
           if (!payload) throw new Error(`描述符缺少资源 ${descriptor.payloadKey}`);
           writeUint16(output, descriptorOffset, descriptor.id);
+          output[descriptorOffset + 2] = descriptor.flags ?? 0;
           output[descriptorOffset + 3] = descriptor.type;
           writeUint32(output, descriptorOffset + 8, payload.offset);
           writeUint32(output, descriptorOffset + 12, payload.bytes.length);

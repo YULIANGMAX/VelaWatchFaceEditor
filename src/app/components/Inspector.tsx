@@ -88,7 +88,7 @@ function MiniThemePreview({ project, theme }: { project: WatchfaceProject; theme
                 position: "absolute",
                 left: Number(layout.attrs.x || 0),
                 top: Number(layout.attrs.y || 0),
-                transform: layoutAnchorTransform(align),
+                transform: layoutAnchorTransform(align, resource?.type),
               }}
             >
               <ResourceRenderer project={project} resourceName={resourceName} now={now} preview={preview} />
@@ -386,6 +386,7 @@ function ResourcePreview({
       >
         <ResourceRenderer
           project={project}
+          resource={resource}
           resourceName={resource.attrs.name || resource.id}
           now={new Date()}
           preview={{ color: activePreviewColor, elapsedMs: 0, temperatureUnit: previewTemperatureUnit, metrics: previewMetrics }}

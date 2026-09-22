@@ -368,6 +368,7 @@ const ResourceRowThumb = memo(function ResourceRowThumb({
       <span ref={rendererRef} className="resource-row-thumb-renderer" style={{ left: `${offsetX}px`, top: `${offsetY}px`, transform: `scale(${scale})` }}>
         <ResourceRenderer
           project={project}
+          resource={resource}
           resourceName={resource.attrs.name || resource.id}
           now={now}
           preview={preview}

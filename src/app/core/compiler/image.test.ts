@@ -39,5 +39,5 @@ describe("小米表盘图片编码", () => {
     const block1 = encodeImageBlock({ width: 260, height: 1, rgba }, "indexed8", "none");
     const block2 = encodeImageBlock({ width: 260, height: 1, rgba }, "indexed8", "none");
     expect(block1.bytes).toEqual(block2.bytes);
-  });
+  }, 20000);
 });

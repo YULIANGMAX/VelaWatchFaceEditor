@@ -9,6 +9,7 @@ export const DESCRIPTOR_SIZE = 0x10;
 
 export interface InspectedDescriptor {
   id: number;
+  flags: number;
   type: number;
   offset: number;
   length: number;
@@ -60,9 +61,9 @@ export function inspectWatchfaceBin(bytes: Uint8Array, device: DeviceDefinition)
     throw new Error("不是受支持的小米表盘 BIN：文件魔数错误");
   }
 
-  const colorCount = readUint32(bytes, 0x18);
+  const colorCount = readUint32(bytes, 0x18) || bytes[0x1d];
   const recolorCount = bytes[0x1d];
-  const colorTableLength = Math.ceil(colorCount * 3 / 4) * 4;
+  const colorTableLength = colorCount * 4;
   ensureRange(bytes, globalHeaderSize, colorTableLength, "颜色表");
   const faceCount = bytes[0x1c];
   const faceStart = globalHeaderSize + colorTableLength;
@@ -98,6 +99,7 @@ export function inspectWatchfaceBin(bytes: Uint8Array, device: DeviceDefinition)
         resourceRanges.push({ start: dataOffset, end: dataOffset + dataLength, label: `主题 ${faceIndex} type-${type} 资源 ${descriptorIndex}` });
         descriptors.push({
           id: readUint16(bytes, descriptorOffset),
+          flags: bytes[descriptorOffset + 2],
           type: bytes[descriptorOffset + 3],
           offset: dataOffset,
           length: dataLength,

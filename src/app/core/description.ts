@@ -26,6 +26,8 @@ const DESCRIPTION_ORDER = [
   "watchfaceType",
   "imageArrayRamMethod",
   "_recolorEnable",
+  "recolorTable",
+  "colorGroupTable",
   "webVersionExportAt",
   "editorVersionExportAt",
 ] as const;
@@ -79,7 +81,11 @@ export function serializeDescription(project: WatchfaceProject): string {
     imageCompression: "true",
     watchfaceType: "normal",
     imageArrayRamMethod: "whole",
-    _recolorEnable: "false",
+    _recolorEnable: (project.watchface.recolorTable || project.watchface.colorGroupTable) ? "true" : "false",
+    ...(project.watchface.recolorTable || project.watchface.colorGroupTable
+      ? { recolorTable: project.watchface.recolorTable || project.watchface.colorGroupTable }
+      : {}),
+    ...(project.watchface.colorGroupTable ? { colorGroupTable: project.watchface.colorGroupTable } : {}),
   };
   const orderedKeys = [
     ...DESCRIPTION_ORDER.filter((key) => key in values),

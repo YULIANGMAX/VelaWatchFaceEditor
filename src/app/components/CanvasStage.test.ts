@@ -20,6 +20,8 @@ describe("画布顶层布局锚点与性能优化", () => {
     expect(layoutAnchorTransform("left")).toBeUndefined();
     expect(layoutAnchorTransform("center")).toBe("translateX(-50%)");
     expect(layoutAnchorTransform("right")).toBe("translateX(-100%)");
+    expect(layoutAnchorOffsetFactor("center", "DataItemText")).toBe(0);
+    expect(layoutAnchorTransform("center", "DataItemText")).toBeUndefined();
   });
 
   it("精准判定时变敏感资源与静态免重绘资源", () => {

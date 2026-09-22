@@ -197,4 +197,60 @@ describe("manifest.xml 独立打包器", () => {
     expect(payloadText).toContain("拼图");
     expect(payloadText).toContain("拼圖");
   });
+
+  it("支持 colorGroupTable 多切片同名资源打包与独立调色板输出", async () => {
+    const project = createBlankProject("P65");
+    project.watchface.colorGroupTable = "#C7BA87,#D1AC19,#FFC052";
+    project.assets["bg1.png"] = { blob: new Blob([ONE_PIXEL_PNG]), width: 1, height: 1 };
+    project.assets["bg2.png"] = { blob: new Blob([ONE_PIXEL_PNG]), width: 1, height: 1 };
+    project.assets["bg3.png"] = { blob: new Blob([ONE_PIXEL_PNG]), width: 1, height: 1 };
+
+    project.resources.push(
+      { id: "img-bg1", type: "Image", attrs: { name: "bg", src: "bg1.png", colorGroup: "#C7BA87" }, children: [] },
+      { id: "img-bg2", type: "Image", attrs: { name: "bg", src: "bg2.png", colorGroup: "#D1AC19" }, children: [] },
+      { id: "img-bg3", type: "Image", attrs: { name: "bg", src: "bg3.png", colorGroup: "#FFC052" }, children: [] },
+    );
+    project.themes[0]!.layouts.push({ id: "layout-bg", attrs: { ref: "@bg", x: "0", y: "0" } });
+
+    const device = getDeviceDefinition("P65");
+    const result = await compileWatchface(createCompileInput(project), { device });
+
+    // 1. 验证头部的颜色数
+    const view = new DataView(result.bytes.buffer, result.bytes.byteOffset);
+    expect(view.getUint32(0x18, true)).toBe(0);
+
+    // 2. 验证调色板各颜色独立以 4 字节 BGR0 写入
+    const headerSize = device.binary.header.size;
+    // #C7BA87 -> BGR0: 87, ba, c7, 00
+    expect(result.bytes[headerSize]).toBe(0x87);
+    expect(result.bytes[headerSize + 1]).toBe(0xba);
+    expect(result.bytes[headerSize + 2]).toBe(0xc7);
+    expect(result.bytes[headerSize + 3]).toBe(0x00);
+    // #D1AC19 -> BGR0: 19, ac, d1, 00
+    expect(result.bytes[headerSize + 4]).toBe(0x19);
+    expect(result.bytes[headerSize + 5]).toBe(0xac);
+    expect(result.bytes[headerSize + 6]).toBe(0xd1);
+    expect(result.bytes[headerSize + 7]).toBe(0x00);
+    // #FFC052 -> BGR0: 52, c0, ff, 00
+    expect(result.bytes[headerSize + 8]).toBe(0x52);
+    expect(result.bytes[headerSize + 9]).toBe(0xc0);
+    expect(result.bytes[headerSize + 10]).toBe(0xff);
+    expect(result.bytes[headerSize + 11]).toBe(0x00);
+
+    // 验证 0x1d 颜色数量与 0x1e 调色使能位 (bit 0) 及可编辑位 (bit 1)
+    expect(result.bytes[0x1d]).toBe(3);
+    expect(view.getUint16(0x1e, true) & 1).toBe(1);
+    expect(view.getUint16(0x1e, true) & 2).toBe(2);
+
+    // 3. 验证描述符表：同一资源名 bg 的三个切片共享同一个 id，且 flags 位域为 0x00, 0x08, 0x10
+    const inspected = inspectWatchfaceBin(result.bytes, device);
+    const imageTable = inspected.faces[0]!.tables[2]!;
+    expect(imageTable.count).toBe(3);
+    expect(imageTable.descriptors[0]!.id).toBe(imageTable.descriptors[1]!.id);
+    expect(imageTable.descriptors[1]!.id).toBe(imageTable.descriptors[2]!.id);
+    expect(imageTable.descriptors[0]!.flags).toBe(0x00);
+    expect(imageTable.descriptors[1]!.flags).toBe(0x08);
+    expect(imageTable.descriptors[2]!.flags).toBe(0x10);
+  });
 });
+

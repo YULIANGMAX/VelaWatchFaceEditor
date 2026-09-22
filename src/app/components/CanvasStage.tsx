@@ -60,11 +60,13 @@ interface RulerOrigin {
 
 const GRID_STEP = 10;
 
-export function layoutAnchorOffsetFactor(align: string | undefined): number {
+export function layoutAnchorOffsetFactor(align: string | undefined, resourceType?: string): number {
+  if (resourceType === "DataItemText") return 0;
   return align === "center" ? 0.5 : align === "right" ? 1 : 0;
 }
 
-export function layoutAnchorTransform(align: string | undefined): string | undefined {
+export function layoutAnchorTransform(align: string | undefined, resourceType?: string): string | undefined {
+  if (resourceType === "DataItemText") return undefined;
   return align === "center" ? "translateX(-50%)" : align === "right" ? "translateX(-100%)" : undefined;
 }
 
@@ -220,7 +222,7 @@ const LayoutNode = memo(function LayoutNode({
   const x = drag?.x ?? Number(layout.attrs.x || 0);
   const y = drag?.y ?? Number(layout.attrs.y || 0);
   const align = resource?.attrs.align;
-  const alignOffsetFactor = layoutAnchorOffsetFactor(align);
+  const alignOffsetFactor = layoutAnchorOffsetFactor(align, resource?.type);
 
   const onDoubleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -302,7 +304,7 @@ const LayoutNode = memo(function LayoutNode({
   return (
     <div
       className={`layout-node${selected ? " is-selected" : ""}`}
-      style={{ left: x, top: y, transform: layoutAnchorTransform(align) }}
+      style={{ left: x, top: y, transform: layoutAnchorTransform(align, resource?.type) }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -324,7 +326,7 @@ const LayoutNode = memo(function LayoutNode({
               style={{
                 left: x,
                 top: y,
-                transform: layoutAnchorTransform(align),
+                transform: layoutAnchorTransform(align, resource?.type),
               }}
             >
               <span className={`layout-coordinate${y < 22 ? " is-flipped-y" : ""}`}>

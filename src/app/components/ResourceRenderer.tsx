@@ -22,11 +22,14 @@ import {
 } from "./renderers/TextAndNumberRenderer";
 import { WidgetRenderer } from "./renderers/WidgetRenderer";
 
+import type { WatchfaceResource } from "../core/model";
+
 export { resourceVisibleInPreview } from "./renderers/common";
 
 export interface ResourceRendererProps {
   project: WatchfaceProject;
-  resourceName: string;
+  resourceName?: string;
+  resource?: WatchfaceResource;
   now: Date;
   preview?: WatchfacePreviewContext;
   depth?: number;
@@ -36,14 +39,15 @@ export interface ResourceRendererProps {
 export function ResourceRenderer({
   project,
   resourceName,
+  resource: propResource,
   now,
   preview = { color: "", elapsedMs: 0, temperatureUnit: "celsius", metrics: {} },
   depth = 0,
   frameIndex,
 }: ResourceRendererProps): ReactNode {
   if (depth > 8) return <Placeholder label="嵌套过深" />;
-  const resource = findResource(project, resourceName, preview.color);
-  if (!resource) return <Placeholder label={`@${resourceName}`} />;
+  const resource = propResource ?? (resourceName ? findResource(project, resourceName, preview.color) : undefined);
+  if (!resource) return <Placeholder label={`@${resourceName ?? ""}`} />;
   if (!resourceVisibleInPreview(resource, now, preview)) return null;
 
   let content: ReactNode;

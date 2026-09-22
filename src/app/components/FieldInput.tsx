@@ -216,6 +216,7 @@ const ResourceReferenceThumbnail = memo(function ResourceReferenceThumbnail({ pr
       <span className="resource-reference-thumb-renderer" style={{ left: offsetX, top: offsetY, transform: `scale(${scale})` }}>
         <ResourceRenderer
           project={project}
+          resource={resource}
           resourceName={resource.attrs.name || resource.id}
           now={new Date()}
           preview={{ color, elapsedMs: 0, temperatureUnit: previewTemperatureUnit, metrics: previewMetrics }}

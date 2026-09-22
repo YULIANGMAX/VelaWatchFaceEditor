@@ -63,13 +63,27 @@ export function imageNumberDimensions(
   };
 }
 
+function formatToken(spec: string, val: string | number): string {
+  const numMatch = spec.match(/%0?(\d+)d/);
+  if (numMatch) {
+    const num = Number(val);
+    if (!Number.isNaN(num)) {
+      const pad = spec.includes("0");
+      const len = parseInt(numMatch[1]!, 10);
+      const s = String(num);
+      return pad ? s.padStart(len, "0") : s.padStart(len, " ");
+    }
+  }
+  return String(val);
+}
+
 function textContent(resource: WatchfaceResource, now: Date, preview: WatchfacePreviewContext): string {
   const sources = resource.children.length
     ? resource.children.map((child) => metricValue(child.attrs.source, now, preview.metrics))
     : [metricValue(resource.attrs.source, now, preview.metrics)];
   let content = resource.attrs.string || "%d";
   sources.forEach((value) => {
-    content = content.replace(/%[ds]/, String(value));
+    content = content.replace(/%0?\d*[ds]/, (spec) => formatToken(spec, value));
   });
   return content;
 }
@@ -205,8 +219,9 @@ export function TextView({
       trackRadius = Math.max(1, radius - fontSize / 2);
     }
 
-    const arcLength = (Math.abs(span) / 180) * Math.PI * trackRadius;
-    const safetyMargin = vAlign === "bottom" ? fontSize * 0.75 : fontSize * 0.45;
+    const effectiveRadius = vAlign === "top" ? radius : Math.max(1, radius - fontSize / 2);
+    const arcLength = (Math.abs(span) / 180) * Math.PI * effectiveRadius;
+    const safetyMargin = fontSize * 0.45;
     const maxAvailableWidth = Math.max(0, arcLength - safetyMargin);
 
     const longMode = resource.attrs.longMode || "dots";
