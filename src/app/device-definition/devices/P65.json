@@ -30,8 +30,7 @@
                     "powerConsumptionLevel",
                     "support_literal",
                     "editable",
-                    "recolorTable",
-                    "colorGroupTable"
+                    "recolorTable"
                 ],
                 "Theme": [
                     "type",
@@ -50,15 +49,13 @@
                     "src",
                     "compressMethod",
                     "format",
-                    "recolorEnable",
-                    "colorGroup"
+                    "recolorEnable"
                 ],
                 "ImageArray": [
                     "name",
                     "compressMethod",
                     "format",
-                    "recolorEnable",
-                    "colorGroup"
+                    "recolorEnable"
                 ],
                 "ImageArray/Image": [
                     "src"
@@ -89,7 +86,6 @@
                     "h",
                     "fontId",
                     "fontSize",
-                    "fontWeight",
                     "color",
                     "opacity",
                     "letterSpace",
