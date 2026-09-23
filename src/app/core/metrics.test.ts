@@ -4,7 +4,7 @@ import { createBlankProject } from "./model";
 
 describe("metrics 模块测试", () => {
   it("正确从项目中提取使用的数据源及其引用组件", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources.push(
       {
         id: "res1",

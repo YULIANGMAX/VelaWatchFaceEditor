@@ -1,41 +1,43 @@
 import { describe, expect, it } from "vitest";
 import { getDataSourceValidationError, sortDiagnostics } from "./validation";
-import type { Diagnostic } from "./model";
+import { createBlankProject, type Diagnostic } from "./model";
 
 describe("validation helpers", () => {
+  const defaultDevice = createBlankProject().device;
+
   describe("getDataSourceValidationError", () => {
     it("returns null for empty value", () => {
-      expect(getDataSourceValidationError("P65", "")).toBeNull();
+      expect(getDataSourceValidationError(defaultDevice, "")).toBeNull();
     });
 
     it("identifies unknown data source names matching error list pattern", () => {
-      expect(getDataSourceValidationError("P65", "timeYear")).toEqual({
+      expect(getDataSourceValidationError(defaultDevice, "timeYear")).toEqual({
         code: "unknown-data-source",
         message: "未知数据源 timeYear",
       });
-      expect(getDataSourceValidationError("P65", "fakeSource")).toEqual({
+      expect(getDataSourceValidationError(defaultDevice, "fakeSource")).toEqual({
         code: "unknown-data-source",
         message: "未知数据源 fakeSource",
       });
     });
 
     it("identifies odd-length hexadecimal codes", () => {
-      expect(getDataSourceValidationError("P65", "123")).toEqual({
+      expect(getDataSourceValidationError(defaultDevice, "123")).toEqual({
         code: "odd-length-data-source",
         message: "source 的十六进制代码必须为偶数长度",
       });
     });
 
     it("identifies invalid data source patterns", () => {
-      expect(getDataSourceValidationError("P65", "bad-name!")).toEqual({
+      expect(getDataSourceValidationError(defaultDevice, "bad-name!")).toEqual({
         code: "invalid-data-source",
         message: "source 必须为指标名称或不带 0x 的十六进制代码",
       });
     });
 
     it("accepts valid and supported data source", () => {
-      expect(getDataSourceValidationError("P65", "dateYear")).toBeNull();
-      expect(getDataSourceValidationError("P65", "0812")).toBeNull();
+      expect(getDataSourceValidationError(defaultDevice, "dateYear")).toBeNull();
+      expect(getDataSourceValidationError(defaultDevice, "0812")).toBeNull();
     });
   });
 

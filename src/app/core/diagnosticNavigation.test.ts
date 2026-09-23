@@ -3,7 +3,7 @@ import { createBlankProject } from "./model";
 import { findDiagnosticTarget } from "./diagnosticNavigation";
 
 describe("findDiagnosticTarget", () => {
-  const project = createBlankProject("O66");
+  const project = createBlankProject();
   project.resources = [{ id: "image", type: "Image", attrs: { name: "background", src: "background.png" }, children: [] }];
   project.themes[0].layouts = [
     { id: "layout-1", attrs: { ref: "@background", x: "0", y: "0" } },

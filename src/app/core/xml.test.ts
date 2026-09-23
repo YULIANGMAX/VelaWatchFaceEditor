@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateProject } from "./validation";
-import { createBlankProject, DEVICE_PROFILES, generateWatchfaceId, getDeviceDefinition, getDeviceProfile } from "./model";
+import { createBlankProject, generateWatchfaceId } from "./model";
 import { FORMAT_RESOURCE_DEFINITION_MAP as RESOURCE_DEFINITION_MAP } from "../format-definition/manifestFormat";
 import {
   createAssetImportCandidates,
@@ -125,7 +125,7 @@ describe("Vela manifest.xml 已观测格式边界", () => {
   </Resources>
   <Theme type="normal" name="默认" bgColor="#000000"/>
 </Watchface>`;
-    const result = parseManifest(xml, "O66");
+    const result = parseManifest(xml);
 
     expect(result.blocked).toBe(false);
     expect(result.diagnostics.some((entry) => entry.code === "unsupported-attribute" && entry.message.includes("param"))).toBe(true);
@@ -146,7 +146,7 @@ describe("Vela manifest.xml 已观测格式边界", () => {
     <FutureLayout value="3"/>
   </Theme>
 </Watchface>`;
-    const parsed = parseManifest(xml, "P65");
+    const parsed = parseManifest(xml);
 
     expect(parsed.blocked).toBe(false);
     expect(parsed.project?.watchface.futureRoot).toBe("keep");
@@ -205,30 +205,17 @@ describe("Vela manifest.xml 已观测格式边界", () => {
     expect(codes).toContain("image-array-size-mismatch");
   });
 
-  it("校验颜色组首项并阻止 Widget/Slot 循环引用", () => {
+  it("阻止 Widget/Slot 循环引用", () => {
     const project = createBlankProject();
-    project.watchface.colorGroupTable = "#ff0000,#00ff00";
     project.resources.push(
-      { id: "green", type: "Image", attrs: { name: "same", src: "a.png", compressMethod: "RLEReversed", format: "RGBA32", colorGroup: "#00ff00" }, children: [] },
-      { id: "blue", type: "Image", attrs: { name: "same", src: "a.png", compressMethod: "RLEReversed", format: "RGBA32", colorGroup: "#0000ff" }, children: [] },
       { id: "widget", type: "Widget", attrs: { name: "Widget1" }, children: [{ id: "slot-ref", attrs: { ref: "@Slot1" } }] },
       { id: "slot", type: "Slot", attrs: { name: "Slot1", type: "widget" }, children: [{ id: "widget-ref", attrs: { ref: "@Widget1" } }] },
     );
 
     const codes = validateProject(project).map((entry) => entry.code);
-    expect(codes).toContain("unknown-color-group");
-    expect(codes).toContain("missing-first-color-group");
     expect(codes).toContain("cyclic-composite-reference");
   });
 
-  it("设备预设直接携带二进制定义", () => {
-    expect(DEVICE_PROFILES).toHaveLength(16);
-    expect(getDeviceProfile("O65")).toMatchObject({ id: "O65", label: "Redmi Watch 5", width: 432, height: 514, radius: 103 });
-    expect(getDeviceProfile("P65")).toMatchObject({ id: "P65", label: "Redmi Watch 6", width: 432, height: 514, radius: 108 });
-    expect(getDeviceDefinition("N66").binary.header.size).toBe(0xa8);
-    expect(getDeviceDefinition("O66").binary.header.fixedFields[0]).toEqual({ offset: 0, encoding: "hex", value: "5AA53412" });
-    expect(getDeviceProfile("N62S").label).toBe("Xiaomi Watch S4 Sport");
-  });
 
   it("解析并序列化带 movable 和 Position 子节点的 Slot 资源", () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -285,7 +272,7 @@ describe("Vela manifest.xml 已观测格式边界", () => {
       directories: new Map([["resources", resources]]),
       files: new Map(),
     };
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assetFolders = ["empty/nested"];
     project.assets["images/test.png"] = {
       path: "images/test.png",

@@ -4,7 +4,7 @@ import { findResourceReferences } from "./resourceReferences";
 
 describe("findResourceReferences", () => {
   it("仅列出格式定义中的显式资源引用，并保留跳转目标", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     const image = { id: "image", type: "Image" as const, attrs: { name: "target", src: "target.png" }, children: [] };
     const widget = {
       id: "widget",

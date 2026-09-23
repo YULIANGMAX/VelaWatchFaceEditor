@@ -26,7 +26,7 @@ describe("画布顶层布局锚点与性能优化", () => {
   });
 
   it("精准判定时变敏感资源与静态免重绘资源", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources = [
       { id: "1", type: "Image", attrs: { name: "bg_img", src: "bg.png" }, children: [] },
       { id: "2", type: "Sprite", attrs: { name: "anim_sprite" }, children: [] },

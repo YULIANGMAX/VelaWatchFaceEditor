@@ -4,7 +4,7 @@ import { getWidgetEffectiveSize, measureResource } from "./measure";
 
 describe("measure 尺寸测量引擎测试", () => {
   it("Sprite、Slot 和进度条沿用引用资源的尺寸", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assets["frame.png"] = {
       path: "frame.png", url: "", width: 40, height: 20, blob: new Blob(), imageMetadataLoaded: true,
     };
@@ -21,7 +21,7 @@ describe("measure 尺寸测量引擎测试", () => {
   });
 
   it("正确测量 Image 与 ImageArray 尺寸", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assets["images/bg.png"] = {
       path: "images/bg.png",
       url: "blob:bg",
@@ -70,7 +70,7 @@ describe("measure 尺寸测量引擎测试", () => {
   });
 
   it("正确测量 DataItemImageNumber 宽度（位数 + 间距 + 单位）", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assets["images/digit.png"] = {
       path: "images/digit.png",
       url: "blob:digit",
@@ -143,7 +143,7 @@ describe("measure 尺寸测量引擎测试", () => {
   });
 
   it("正确测量 Widget 流式排版与有效尺寸推导", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assets["images/a.png"] = {
       path: "images/a.png",
       url: "blob:a",
@@ -201,7 +201,7 @@ describe("measure 尺寸测量引擎测试", () => {
   });
 
   it("当子组件显式指定了 w/h 时，父组件排版测量优先采用子组件指定的尺寸", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.assets["images/icon.png"] = {
       path: "images/icon.png",
       url: "blob:icon",

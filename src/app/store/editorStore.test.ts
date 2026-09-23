@@ -3,7 +3,7 @@ import { createBlankProject } from "../core/model";
 import { calculateProjectChecksum, useEditorStore } from "./editorStore";
 
 describe("项目内容修订号", () => {
-  beforeEach(() => useEditorStore.getState().resetProject("O66"));
+  beforeEach(() => useEditorStore.getState().resetProject());
 
   it("引用跳转可逐层返回到原来的选中位置", () => {
     const themeId = useEditorStore.getState().project.themes[0]!.id;
@@ -31,13 +31,13 @@ describe("项目内容修订号", () => {
   it("新项目未保存；打开项目为干净状态", () => {
     let state = useEditorStore.getState();
     expect(state.contentRevision).not.toBe(state.savedRevision);
-    state.loadProject(createBlankProject("O66"), [], true);
+    state.loadProject(createBlankProject(), [], true);
     state = useEditorStore.getState();
     expect(state.contentRevision).toBe(state.savedRevision);
   });
 
   it("修改属性后标脏，改回原值后恢复干净状态", () => {
-    useEditorStore.getState().loadProject(createBlankProject("O66"), [], true);
+    useEditorStore.getState().loadProject(createBlankProject(), [], true);
     let state = useEditorStore.getState();
     expect(state.contentRevision).toBe(state.savedRevision);
 
@@ -53,7 +53,7 @@ describe("项目内容修订号", () => {
   });
 
   it("修改属性保存后恢复干净，undo 回改动前标脏，redo 回已保存状态恢复干净", () => {
-    useEditorStore.getState().loadProject(createBlankProject("O66"), [], true);
+    useEditorStore.getState().loadProject(createBlankProject(), [], true);
     useEditorStore.getState().updateWatchface("name", "修改后");
     let state = useEditorStore.getState();
     expect(state.contentRevision).not.toBe(state.savedRevision);
@@ -72,7 +72,7 @@ describe("项目内容修订号", () => {
   });
 
   it("增加资源后标脏，删除后恢复干净状态", () => {
-    useEditorStore.getState().loadProject(createBlankProject("O66"), [], true);
+    useEditorStore.getState().loadProject(createBlankProject(), [], true);
     const id = useEditorStore.getState().addResource("Image", { name: "test_img", src: "test.png" });
     let state = useEditorStore.getState();
     expect(state.contentRevision).not.toBe(state.savedRevision);
@@ -83,7 +83,7 @@ describe("项目内容修订号", () => {
   });
 
   it("资源库实时落盘操作不改变 manifest 修订号", () => {
-    useEditorStore.getState().loadProject(createBlankProject("O66"), [], true);
+    useEditorStore.getState().loadProject(createBlankProject(), [], true);
     const before = useEditorStore.getState().contentRevision;
     useEditorStore.getState().syncAssetLibrary({}, ["images"]);
     useEditorStore.getState().replaceAssetLibrary({}, ["images"]);
@@ -94,13 +94,13 @@ describe("项目内容修订号", () => {
   });
 
   it("应用 XML 后保持未保存状态", () => {
-    useEditorStore.getState().loadProject(createBlankProject("O66"), [], false);
+    useEditorStore.getState().loadProject(createBlankProject(), [], false);
     const state = useEditorStore.getState();
     expect(state.contentRevision).not.toBe(state.savedRevision);
   });
 
   it("重命名资源时同步更新所有引用", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     const target = { id: "target", type: "Image" as const, attrs: { name: "before", src: "before.png" }, children: [] };
     const consumer = { id: "consumer", type: "Widget" as const, attrs: { name: "consumer", preview: "@before" }, children: [{ id: "child", attrs: { ref: "@before" } }] };
     project.resources = [target, consumer];
@@ -122,10 +122,10 @@ describe("项目内容修订号", () => {
 });
 
 describe("布局排序", () => {
-  beforeEach(() => useEditorStore.getState().resetProject("O66"));
+  beforeEach(() => useEditorStore.getState().resetProject());
 
   const buildProject = () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.themes[0].layouts = [
       { id: "a", attrs: { ref: "@a", x: "0", y: "0" } },
       { id: "b", attrs: { ref: "@b", x: "0", y: "0" } },
@@ -166,10 +166,10 @@ describe("布局排序", () => {
 });
 
 describe("资源排序", () => {
-  beforeEach(() => useEditorStore.getState().resetProject("O66"));
+  beforeEach(() => useEditorStore.getState().resetProject());
 
   const buildProject = () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources = [
       { id: "a", type: "image", attrs: { name: "a" }, children: [] },
       { id: "b", type: "image", attrs: { name: "b" }, children: [] },
@@ -206,10 +206,10 @@ describe("资源排序", () => {
 });
 
 describe("资源复制", () => {
-  beforeEach(() => useEditorStore.getState().resetProject("O66"));
+  beforeEach(() => useEditorStore.getState().resetProject());
 
   const buildProject = () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources = [
       { id: "a", type: "image", attrs: { name: "a", src: "a.png" }, children: [{ id: "child-a", attrs: { ref: "@b" } }] },
       { id: "b", type: "image", attrs: { name: "b" }, children: [] },
@@ -261,10 +261,10 @@ describe("资源复制", () => {
 });
 
 describe("主题复制", () => {
-  beforeEach(() => useEditorStore.getState().resetProject("O66"));
+  beforeEach(() => useEditorStore.getState().resetProject());
 
   it("duplicateTheme 克隆主题与其所有图层并高亮选中", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.themes = [
       {
         id: "theme-1",
@@ -294,7 +294,7 @@ describe("主题复制", () => {
   });
 
   it("calculateProjectChecksum 能够精准感知属性微调且具有可复原性", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources.push({
       id: "res1",
       type: "Image",
@@ -320,8 +320,8 @@ describe("主题复制", () => {
   });
 
   it("updateChild 生成差量补丁并就地更新子元素", () => {
-    useEditorStore.getState().resetProject("O66");
-    const project = createBlankProject("O66");
+    useEditorStore.getState().resetProject();
+    const project = createBlankProject();
     project.resources.push({
       id: "res1",
       type: "ImageArray",

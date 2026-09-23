@@ -79,7 +79,7 @@ describe("数据资源通用编码", () => {
       },
       children: [],
     };
-    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 3 }), getDeviceDefinition("P65").dataSources);
+    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 3 }), getDeviceDefinition().dataSources);
 
     expect(Array.from(bytes.subarray(5, 8))).toEqual([0, 250, 0]);
   });
@@ -94,7 +94,7 @@ describe("数据资源通用编码", () => {
       },
       children: [],
     };
-    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 2 }), getDeviceDefinition("P65").dataSources);
+    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 2 }), getDeviceDefinition().dataSources);
 
     expect(bytes[5]).toBe(1);
     expect(bytes[14]).toBe(1);
@@ -117,7 +117,7 @@ describe("数据资源通用编码", () => {
       },
       children: [{ id: "content", attrs: { source: "timeHour" } }],
     };
-    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 0 }), getDeviceDefinition("P65").dataSources);
+    const bytes = encodeDataResource(resource, () => ({ index: 0, type: 0 }), getDeviceDefinition().dataSources);
 
     expect(Array.from(bytes.subarray(6, 8))).toEqual([250, 0]);
     // letterSpace=20 packed into bits 10..15 of uint16 at 13 (0x51c3 -> [195, 81])

@@ -342,7 +342,7 @@ export async function importProjectDirectory(
 
 export async function importProjectVirtualFiles(
   virtualEntries: { path: string; file: File }[],
-  device: DeviceType,
+  device: DeviceType = "O66",
   onProgress?: (progress: ProjectLoadProgress) => void,
   rootName = "虚拟项目目录",
 ): Promise<ParseResult> {

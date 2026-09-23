@@ -4,7 +4,7 @@ import { applyHistoryPatch, type LayoutAttrPatch } from "./patchHistory";
 
 describe("差量原子历史补丁 (applyHistoryPatch)", () => {
   it("正向重做与逆向撤销图层属性修改", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     const themeId = project.themes[0].id;
     project.themes[0].layouts.push({
       id: "l1",
@@ -30,7 +30,7 @@ describe("差量原子历史补丁 (applyHistoryPatch)", () => {
   });
 
   it("正向重做与逆向撤销资源属性修改", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources.push({
       id: "res1",
       type: "Image",
@@ -54,7 +54,7 @@ describe("差量原子历史补丁 (applyHistoryPatch)", () => {
   });
 
   it("正向重做与逆向撤销子项属性修改", () => {
-    const project = createBlankProject("O66");
+    const project = createBlankProject();
     project.resources.push({
       id: "res1",
       type: "Image",

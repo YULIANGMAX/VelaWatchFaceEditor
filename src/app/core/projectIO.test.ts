@@ -71,7 +71,7 @@ describe("runConcurrent", () => {
       { path: "resources/bg.png", file: new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], "bg.png", { type: "image/png" }) },
     ];
 
-    const result = await importProjectVirtualFiles(virtualEntries, "O66");
+    const result = await importProjectVirtualFiles(virtualEntries);
     expect(result.blocked).toBe(false);
     expect(result.project).not.toBeNull();
     expect(result.project?.description.name).toBe("虚拟表盘工程");
@@ -82,19 +82,18 @@ describe("runConcurrent", () => {
 
 describe("serializeDescription", () => {
   it("无配色表时 _recolorEnable 输出 false 且无 recolorTable 字段", () => {
-    const project = createBlankProject("P65");
+    const project = createBlankProject();
     const xml = serializeDescription(project);
     expect(xml).toContain("<_recolorEnable>false</_recolorEnable>");
     expect(xml).not.toContain("<recolorTable>");
   });
 
-  it("存在 recolorTable 或 colorGroupTable 时 _recolorEnable 输出 true 并包含配色表", () => {
-    const project = createBlankProject("P65");
-    project.watchface.colorGroupTable = "#FF4444,#00E5FF,#00FF66";
+  it("存在 recolorTable 时 _recolorEnable 输出 true 并包含配色表", () => {
+    const project = createBlankProject();
+    project.watchface.recolorTable = "#FF4444,#00E5FF,#00FF66";
     const xml = serializeDescription(project);
     expect(xml).toContain("<_recolorEnable>true</_recolorEnable>");
     expect(xml).toContain("<recolorTable>#FF4444,#00E5FF,#00FF66</recolorTable>");
-    expect(xml).toContain("<colorGroupTable>#FF4444,#00E5FF,#00FF66</colorGroupTable>");
   });
 });
 

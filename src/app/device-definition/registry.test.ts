@@ -3,6 +3,7 @@ import {
   DEVICE_DEFINITIONS,
   DEVICE_PROFILES,
   findDeviceProfile,
+  getDeviceDefinition,
   getDeviceProfile,
   isDataSourceSupported,
   supportsManifestAttribute,
@@ -44,6 +45,7 @@ describe("Vela 设备定义注册表", () => {
     expect(getDeviceProfile("O66").dataSources.codes.timeHour).toBe("0811");
     expect(Object.keys(getDeviceProfile("O66").dataSources.codes)).toHaveLength(166);
     expect(isDataSourceSupported("O66", "timeHour")).toBe(true);
+    expect(getDeviceDefinition("O66").binary.header.fixedFields[0]).toEqual({ offset: 0, encoding: "hex", value: "5AA53412" });
     expect(DEVICE_DEFINITIONS.every((definition) => definition.manifest.resourceTypes.policy === "all-format")).toBe(true);
   });
 
@@ -81,6 +83,9 @@ describe("Vela 设备定义注册表", () => {
     expect(supportsManifestAttributeValue(p65, "Theme", "isPhotoAlbumWatchface", "true")).toBe(false);
     expect(supportsManifestAttributeValue(p65, "DataItemImageNumber", "supportRecolor", "true")).toBe(true);
     expect(supportsManifestAttribute(o66, "Watchface", "editable")).toBe(false);
+    expect(supportsManifestAttribute(p65, "Watchface", "colorGroupTable")).toBe(false);
+    expect(supportsManifestAttribute(p65, "Image", "colorGroup")).toBe(false);
+    expect(supportsManifestAttribute(p65, "DataItemText", "fontWeight")).toBe(false);
   });
 
   it("未知设备不会静默回退到 Common", () => {
