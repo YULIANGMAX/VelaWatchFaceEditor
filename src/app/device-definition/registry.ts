@@ -334,13 +334,13 @@ export function findDeviceProfile(device: string): DeviceProfile | undefined {
   return DEVICE_PROFILE_MAP[device];
 }
 
-export function getDeviceProfile(device: DeviceType): DeviceProfile {
+export function getDeviceProfile(device: DeviceType = "O66"): DeviceProfile {
   const profile = findDeviceProfile(device);
   if (!profile) throw new Error(`不支持设备 ${device}`);
   return profile;
 }
 
-export function getDeviceDefinition(device: DeviceType): DeviceDefinition {
+export function getDeviceDefinition(device: DeviceType = "O66"): DeviceDefinition {
   const definition = DEVICE_DEFINITIONS.find((entry) => entry.deviceType === device);
   if (!definition) throw new Error(`不支持设备 ${device}`);
   return definition;
