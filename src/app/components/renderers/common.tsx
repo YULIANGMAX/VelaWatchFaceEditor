@@ -81,7 +81,9 @@ export function Bitmap({ asset, color }: { asset: ProjectAsset; color?: string }
 }
 
 export function recolorFor(project: WatchfaceProject, resource: WatchfaceResource, preview: WatchfacePreviewContext): string | undefined {
-  const table = project.watchface.colorGroupTable || project.watchface.recolorTable || "";
+  const activeTheme = project.themes?.find((t) => t.id === preview.themeId);
+  const themeTable = activeTheme ? (activeTheme.attrs.colorGroupTable || activeTheme.attrs.recolorTable || "") : "";
+  const table = themeTable || project.watchface.colorGroupTable || project.watchface.recolorTable || "";
   const colors = table.split(",").map((entry) => entry.trim().toLowerCase()).filter(Boolean);
   return resource.attrs.recolorEnable === "true" && colors.includes(preview.color.toLowerCase()) ? preview.color : undefined;
 }

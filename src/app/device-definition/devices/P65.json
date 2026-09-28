@@ -37,7 +37,11 @@
                     "name",
                     "bgColor",
                     "preview",
-                    "isPhotoAlbumWatchface"
+                    "isPhotoAlbumWatchface",
+                    "recolorTable",
+                    "colorGroupTable",
+                    "bg",
+                    "fg"
                 ],
                 "Layout": [
                     "ref",
@@ -266,7 +270,8 @@
                 },
                 "Theme": {
                     "isPhotoAlbumWatchface": [
-                        "false"
+                        "false",
+                        "true"
                     ]
                 },
                 "DataItemImageNumber": {

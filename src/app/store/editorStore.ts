@@ -458,6 +458,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     else project.watchface[key] = value;
     if (key === "name") project.description.name = watchfaceDisplayName(project);
     if (key === "id") project.description.pkgName = value;
+    if (key === "recolorTable" || key === "colorGroupTable") {
+      for (const t of project.themes) {
+        if (t.attrs.recolorTable !== undefined) {
+          if (value === "") delete t.attrs.recolorTable;
+          else t.attrs.recolorTable = value;
+        }
+        if (t.attrs.colorGroupTable !== undefined) {
+          if (value === "") delete t.attrs.colorGroupTable;
+          else t.attrs.colorGroupTable = value;
+        }
+      }
+    }
   })),
 
   updateDescription: (key, value) => set((state) => commit(state, (project) => {

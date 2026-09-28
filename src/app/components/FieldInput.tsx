@@ -439,7 +439,7 @@ export function AssetPathSelect({ field, value, project, onChange, disabled = fa
   );
 }
 
-function MouseTooltip({ text, x, y }: { text: string; x: number; y: number }) {
+export function MouseTooltip({ text, x, y }: { text: string; x: number; y: number }) {
   if (typeof document === "undefined") return null;
   const gap = 14;
   // 当光标右侧空间不足时翻转至左侧显示

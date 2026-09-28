@@ -337,4 +337,31 @@ describe("主题复制", () => {
     expect(state.historyPatches).toHaveLength(1);
     expect(state.historyPatches[0].kind).toBe("child_attrs");
   });
+
+  it("updateWatchface 更新 recolorTable 时自动同步给已开启换色的主题，未开启主题保持留空", () => {
+    useEditorStore.getState().resetProject();
+    const project = createBlankProject();
+    project.watchface.recolorTable = "#111111,#222222";
+    // 主题 0 开启换色
+    project.themes[0]!.attrs.recolorTable = "#111111,#222222";
+    // 主题 1 未开启换色（如 AOD）
+    project.themes.push({
+      id: "aod-theme",
+      attrs: { type: "AOD", name: "息屏", bgColor: "#000000" },
+      layouts: [],
+    });
+    useEditorStore.getState().loadProject(project, [], true);
+
+    // 修改表盘全局配色表
+    useEditorStore.getState().updateWatchface("recolorTable", "#333333,#444444,#555555");
+    let state = useEditorStore.getState();
+    expect(state.project.themes[0]!.attrs.recolorTable).toBe("#333333,#444444,#555555");
+    expect(state.project.themes[1]!.attrs.recolorTable).toBeUndefined();
+
+    // 清空表盘全局配色表
+    useEditorStore.getState().updateWatchface("recolorTable", "");
+    state = useEditorStore.getState();
+    expect(state.project.themes[0]!.attrs.recolorTable).toBeUndefined();
+    expect(state.project.themes[1]!.attrs.recolorTable).toBeUndefined();
+  });
 });

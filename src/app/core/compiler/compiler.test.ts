@@ -80,11 +80,11 @@ describe("manifest.xml 独立打包器", () => {
   it("未知扩展、未验证属性值和设备尺寸不匹配均阻止编译", async () => {
     const device = getDeviceDefinition("P65");
     const project = createBlankProject("P65");
-    project.themes[0]!.attrs.isPhotoAlbumWatchface = "true";
+    project.watchface.interactive = "true";
     await expect(compileWatchface(createCompileInput(project), { device }))
-      .rejects.toThrow("尚未验证 Theme.isPhotoAlbumWatchface=true");
+      .rejects.toThrow("尚未验证 Watchface.interactive=true");
 
-    project.themes[0]!.attrs.isPhotoAlbumWatchface = "false";
+    project.watchface.interactive = "false";
     project.watchface.width = "431";
     await expect(compileWatchface(createCompileInput(project), { device }))
       .rejects.toThrow("Watchface.width 必须等于设备宽度 432");
@@ -93,6 +93,10 @@ describe("manifest.xml 独立打包器", () => {
     project.manifestExtensions.push({ id: "extension", parent: "Watchface", index: 0, xml: "<UnknownFuture/>" });
     await expect(compileWatchface(createCompileInput(project), { device }))
       .rejects.toThrow("1 个尚未支持的 XML 节点");
+
+    project.manifestExtensions = [];
+    project.themes[0]!.attrs.isPhotoAlbumWatchface = "true";
+    await expect(compileWatchface(createCompileInput(project), { device })).resolves.toBeDefined();
   });
 
   it("按项目版本和 P65 设备定义生成标准头字段与主题标志", async () => {

@@ -3956,6 +3956,24 @@ button.directory-gate-button:disabled {
   transform: scale(1.04);
 }
 
+.theme-recolor-control {
+  margin-top: 4px;
+}
+
+.theme-recolor-swatches-box {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg-hover, rgba(0, 0, 0, 0.03));
+}
+
+.theme-recolor-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted, #71717a);
+}
+
 .preview-unit-toggle {
   display: inline-flex;
   align-items: center;

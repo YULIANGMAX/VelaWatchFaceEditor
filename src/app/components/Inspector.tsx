@@ -33,7 +33,7 @@ import { DATA_SOURCE_LABELS } from "../device-definition/dataSourceLabels";
 import { measureResource } from "../core/measure";
 import { isDeviceAttributeEditable, isDeviceResourceEditable } from "../editor/deviceEditorCapabilities";
 import { useEditorStore } from "../store/editorStore";
-import { AssetPathSelect, ComboboxInput, FieldInput, ResourceReferenceSelect } from "./FieldInput";
+import { AssetPathSelect, ComboboxInput, FieldInput, MouseTooltip, ResourceReferenceSelect } from "./FieldInput";
 import { ResourceRenderer } from "./ResourceRenderer";
 import { layoutAnchorTransform } from "./CanvasStage";
 import { setDragGhost } from "../core/dragGhost";
@@ -96,6 +96,102 @@ function MiniThemePreview({ project, theme }: { project: WatchfaceProject; theme
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function ThemeRecolorControl({
+  theme,
+  project,
+  onUpdateTheme,
+}: {
+  theme: WatchfaceTheme;
+  project: WatchfaceProject;
+  onUpdateTheme: (key: string, value: string) => void;
+}) {
+  const previewColor = useEditorStore((state) => state.previewColor);
+  const setPreviewColor = useEditorStore((state) => state.setPreviewColor);
+
+  const globalColorTable = project.watchface.recolorTable?.trim() || project.watchface.colorGroupTable?.trim() || "";
+  const isEnabled = Boolean(theme.attrs.recolorTable?.trim() || theme.attrs.colorGroupTable?.trim());
+  const activeColorTable = isEnabled
+    ? (theme.attrs.recolorTable?.trim() || theme.attrs.colorGroupTable?.trim() || globalColorTable)
+    : globalColorTable;
+
+  const parsedColors = activeColorTable
+    .split(",")
+    .map((c) => c.trim())
+    .filter((c) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c));
+
+  const hasGlobalTable = Boolean(globalColorTable);
+  const disabled = !hasGlobalTable && !isEnabled;
+
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+  const helpText = hasGlobalTable
+    ? "开启后该主题支持动态换色，自动继承表盘全局动态颜色表"
+    : "需先在表盘属性中配置「动态颜色表」后方可在此开启换色";
+
+  const handleToggle = () => {
+    if (isEnabled) {
+      onUpdateTheme("recolorTable", "");
+      if (theme.attrs.colorGroupTable) {
+        onUpdateTheme("colorGroupTable", "");
+      }
+    } else {
+      if (!hasGlobalTable) return;
+      onUpdateTheme("recolorTable", globalColorTable);
+    }
+  };
+
+  return (
+    <div className="theme-recolor-control">
+      <div
+        className={`field-row${disabled ? " is-disabled" : ""}`}
+        onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setMousePos(null)}
+      >
+        <label className="field-row-label">
+          <span className="field-label-text">动态换色</span>
+        </label>
+        <div className="field-row-control field-row-switch">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isEnabled}
+            className={`toggle${isEnabled ? " is-on" : ""}`}
+            disabled={disabled}
+            onClick={handleToggle}
+          >
+            <span />
+          </button>
+          {!hasGlobalTable && !isEnabled ? (
+            <small className="field-error-inline">需先在表盘配置动态颜色表</small>
+          ) : null}
+        </div>
+        {mousePos ? <MouseTooltip text={helpText} x={mousePos.x} y={mousePos.y} /> : null}
+      </div>
+
+      {isEnabled && parsedColors.length > 0 ? (
+        <div className="theme-recolor-swatches-box">
+          <div className="recolor-swatches-strip" role="group" aria-label="主题配色预览">
+            {parsedColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={`recolor-swatch-chip${color.toLowerCase() === previewColor.toLowerCase() ? " is-active" : ""}`}
+                style={{ backgroundColor: color }}
+                title={`点击设为当前画布预览色: ${color}`}
+                onClick={() => setPreviewColor(color)}
+              >
+                <span className="recolor-swatch-chip-hex">{color}</span>
+              </button>
+            ))}
+          </div>
+          <div className="theme-recolor-hint">
+            已继承表盘全局配色（共 {parsedColors.length} 色）。如需增删修改，请至「表盘属性」面板调整。
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -667,30 +763,43 @@ function ChildEditor({
         </div>
       ) : (
         <>
-          {resource.children.map((child, index) => (
-            <ChildItemCard
-              key={child.id}
-              project={project}
-              resourceId={resource.id}
-              resourceType={resource.type}
-              child={child}
-              index={index}
-              childTag={childTag}
-              childDefinition={childDefinition}
-              isFlexLayout={isFlexLayout}
-              isDragging={draggedChildId === child.id}
-              dropPosition={dropTarget?.id === child.id ? dropTarget.position : null}
-              frameThumbSrc={frameThumb(index)}
-              onUpdateChild={onUpdateChild}
-              onRemoveChild={onRemoveChild}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onNavigateToResource={onNavigateToResource}
-            />
-          ))}
+          {resource.children.map((child, index) => {
+            let activeTag = child.tag;
+            if (!activeTag) {
+              if (child.attrs.x !== undefined || child.attrs.y !== undefined) {
+                activeTag = "Position";
+              } else {
+                activeTag = childDefinition.tag ?? "Item";
+              }
+            }
+            const activeDef = (activeTag === childDefinition.tag
+              ? childDefinition
+              : RESOURCE_DEFINITION_MAP[resource.type]?.extraChildren?.find((e) => e.tag === activeTag)) ?? childDefinition;
+            return (
+              <ChildItemCard
+                key={child.id}
+                project={project}
+                resourceId={resource.id}
+                resourceType={resource.type}
+                child={child}
+                index={index}
+                childTag={activeTag}
+                childDefinition={activeDef}
+                isFlexLayout={isFlexLayout}
+                isDragging={draggedChildId === child.id}
+                dropPosition={dropTarget?.id === child.id ? dropTarget.position : null}
+                frameThumbSrc={frameThumb(index)}
+                onUpdateChild={onUpdateChild}
+                onRemoveChild={onRemoveChild}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onNavigateToResource={onNavigateToResource}
+              />
+            );
+          })}
           <div className="child-list-footer">
             <button
               type="button"
@@ -1188,7 +1297,24 @@ export function Inspector() {
             title="主题属性"
             icon={<Palette size={15} className="card-icon" />}
           >
-            <Fields fields={THEME_FIELDS.filter((field) => field.key !== "preview" && field.key !== "name")} attrs={theme.attrs} target="Theme" onChange={(key, value) => updateTheme(theme.id, key, value)} />
+            <Fields
+              fields={THEME_FIELDS.filter(
+                (field) =>
+                  field.key !== "preview" &&
+                  field.key !== "name" &&
+                  field.key !== "recolorTable" &&
+                  field.key !== "colorGroupTable" &&
+                  !field.hidden,
+              )}
+              attrs={theme.attrs}
+              target="Theme"
+              onChange={(key, value) => updateTheme(theme.id, key, value)}
+            />
+            <ThemeRecolorControl
+              theme={theme}
+              project={project}
+              onUpdateTheme={(key, value) => updateTheme(theme.id, key, value)}
+            />
           </InspectorCard>
           <section className="inspector-danger-card">
             <button

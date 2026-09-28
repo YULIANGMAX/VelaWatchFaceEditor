@@ -80,7 +80,8 @@ describe("Vela 设备定义注册表", () => {
     expect(p65.manifest.attributes.policy).toBe("allow-list");
     expect(supportsManifestAttribute(p65, "Watchface", "editable")).toBe(true);
     expect(supportsManifestAttributeValue(p65, "Watchface", "editable", "true")).toBe(true);
-    expect(supportsManifestAttributeValue(p65, "Theme", "isPhotoAlbumWatchface", "true")).toBe(false);
+    expect(supportsManifestAttributeValue(p65, "Theme", "isPhotoAlbumWatchface", "true")).toBe(true);
+    expect(supportsManifestAttributeValue(p65, "Watchface", "interactive", "true")).toBe(false);
     expect(supportsManifestAttributeValue(p65, "DataItemImageNumber", "supportRecolor", "true")).toBe(true);
     expect(supportsManifestAttribute(o66, "Watchface", "editable")).toBe(false);
     expect(supportsManifestAttribute(p65, "Watchface", "colorGroupTable")).toBe(false);

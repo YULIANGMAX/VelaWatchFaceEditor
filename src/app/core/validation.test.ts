@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getDataSourceValidationError, sortDiagnostics } from "./validation";
+import { getDataSourceValidationError, sortDiagnostics, validateProject } from "./validation";
 import { createBlankProject, type Diagnostic } from "./model";
 
 describe("validation helpers", () => {
@@ -60,6 +60,63 @@ describe("validation helpers", () => {
         "info",
       ]);
       expect(sorted.map((item) => item.id)).toEqual(["3", "5", "2", "1", "4"]);
+    });
+  });
+
+  describe("Slot extraChildren validation", () => {
+    it("正确识别 Slot 的 Position 子节点，不产生 Slot/Item.x 未进入规范的误判", () => {
+      const project = createBlankProject();
+      project.resources.push({
+        id: "w1",
+        type: "Widget",
+        attrs: { name: "Widget1" },
+        children: [],
+      });
+      project.resources.push({
+        id: "s1",
+        type: "Slot",
+        attrs: { name: "Slot1", type: "widget", movable: "true" },
+        children: [
+          { id: "c1", tag: "Item", attrs: { ref: "@Widget1" } },
+          { id: "c2", tag: "Position", attrs: { x: "72", y: "199" } },
+          { id: "c3", tag: "Position", attrs: { x: "72", y: "334" } },
+        ],
+      });
+      const diagnostics = validateProject(project);
+      const slotDiagnostics = diagnostics.filter((d) => d.location.includes("Slot1"));
+      expect(slotDiagnostics).toEqual([]);
+    });
+  });
+
+  describe("Theme recolorTable validation", () => {
+    it("正确识别 Theme 的 recolorTable、bg、fg 等官方属性，不产生未进入规范的报错", () => {
+      const project = createBlankProject();
+      project.resources.push({
+        id: "img1",
+        type: "Image",
+        attrs: { name: "Image1", src: "preview.png" },
+        children: [],
+      });
+      project.resources.push({
+        id: "img12",
+        type: "Image",
+        attrs: { name: "Image12", src: "bg.png" },
+        children: [],
+      });
+      project.assets["preview.png"] = { url: "blob://preview", width: 100, height: 100 };
+      project.assets["bg.png"] = { url: "blob://bg", width: 100, height: 100 };
+      project.themes[0]!.attrs = {
+        type: "normal",
+        name: "样式1",
+        bgColor: "#000000",
+        preview: "@Image1",
+        recolorTable: "#ffffff,#1f1f1f,#ea3232",
+        bg: "@Image12",
+        fg: "",
+      };
+      const diagnostics = validateProject(project);
+      const themeDiagnostics = diagnostics.filter((d) => d.location.startsWith("Theme") && d.code === "unknown-manifest-attribute");
+      expect(themeDiagnostics).toEqual([]);
     });
   });
 });

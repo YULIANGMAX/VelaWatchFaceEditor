@@ -1,7 +1,7 @@
 import { createId, normalizePath, refName, type Diagnostic, type WatchfaceProject, type WatchfaceResource } from "../model";
 import { getWidgetEffectiveSize } from "../measure";
 import { supportsManifestAttribute, supportsManifestAttributeValue, supportsManifestResource } from "../../device-definition";
-import { FORMAT_RESOURCE_DEFINITION_MAP, FORMAT_STRUCTURE } from "../../format-definition/manifestFormat";
+import { FORMAT_RESOURCE_DEFINITION_MAP, FORMAT_STRUCTURE, getResourceChildDefinition } from "../../format-definition/manifestFormat";
 import { writeUint16, writeUint24, writeUint32 } from "./binary";
 import { decodePng, type DecodedPng } from "./png";
 import { readBlobBytes } from "./blob";
@@ -340,10 +340,18 @@ function assertDeviceCapabilities(input: CompileInput, options: CompileOptions):
     if (!supportsManifestResource(device, resource.type)) throw new Error(`设备 ${device.deviceType} 不支持资源类型 ${resource.type}`);
     const definition = FORMAT_RESOURCE_DEFINITION_MAP[resource.type];
     assertAttributes(resource.attrs, resource.type, new Set(definition.fields.map((field) => field.key)));
-    const childTag = definition.child?.tag;
     for (const child of resource.children) {
-      const target = `${resource.type}/${childTag ?? "?"}`;
-      assertAttributes(child.attrs, target, new Set(definition.child?.fields.map((field) => field.key) ?? []));
+      let childTag = child.tag;
+      if (!childTag) {
+        if (child.attrs.x !== undefined || child.attrs.y !== undefined) {
+          childTag = "Position";
+        } else {
+          childTag = definition.child?.tag ?? "Item";
+        }
+      }
+      const childDefinition = getResourceChildDefinition(definition, childTag);
+      const target = `${resource.type}/${childTag}`;
+      assertAttributes(child.attrs, target, new Set(childDefinition?.fields.map((field) => field.key) ?? []));
     }
   }
   for (const theme of input.themes) {

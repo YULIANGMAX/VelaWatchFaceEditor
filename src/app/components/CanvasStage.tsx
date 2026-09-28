@@ -456,9 +456,10 @@ export function CanvasStage(_props: {
   };
   const deviceCornerRadius = getDeviceDefinition(project.device).display.cornerRadius;
   const previewColors = useMemo(() => {
-    const value = project.watchface.colorGroupTable || project.watchface.recolorTable || "";
+    const themeTable = theme ? (theme.attrs.colorGroupTable || theme.attrs.recolorTable || "") : "";
+    const value = themeTable || project.watchface.colorGroupTable || project.watchface.recolorTable || "";
     return value.split(",").map((entry) => entry.trim()).filter(Boolean);
-  }, [project.watchface.colorGroupTable, project.watchface.recolorTable]);
+  }, [theme, project.watchface.colorGroupTable, project.watchface.recolorTable]);
   const activePreviewColor = previewColors.includes(previewColor) ? previewColor : previewColors[0] ?? "";
   const hasRecolorEnabledResources = useMemo(() => {
     return project.resources.some((r) => r.attrs.supportRecolor === "true" || r.attrs.recolorEnable === "true");

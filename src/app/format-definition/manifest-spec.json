@@ -152,6 +152,42 @@
         {
           "key": "isPhotoAlbumWatchface",
           "type": "boolean"
+        },
+        {
+          "key": "recolorTable",
+          "type": "string"
+        },
+        {
+          "key": "colorGroupTable",
+          "type": "string"
+        },
+        {
+          "key": "bg",
+          "type": "reference",
+          "referenceTypes": [
+            "Image",
+            "ImageArray"
+          ],
+          "visibleWhen": {
+            "key": "isPhotoAlbumWatchface",
+            "values": [
+              "true"
+            ]
+          }
+        },
+        {
+          "key": "fg",
+          "type": "reference",
+          "referenceTypes": [
+            "Image",
+            "ImageArray"
+          ],
+          "visibleWhen": {
+            "key": "isPhotoAlbumWatchface",
+            "values": [
+              "true"
+            ]
+          }
         }
       ],
       "child": {

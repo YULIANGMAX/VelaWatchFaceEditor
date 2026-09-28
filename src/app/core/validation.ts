@@ -12,6 +12,7 @@ import {
 import {
   FORMAT_RESOURCE_DEFINITION_MAP,
   FORMAT_STRUCTURE,
+  getResourceChildDefinition,
   isFormatFieldRequired,
   isFormatFieldVisible,
   type FormatFieldDefinition,
@@ -203,12 +204,41 @@ function validateChildren(
   location: string,
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
-  const childDefinition = FORMAT_RESOURCE_DEFINITION_MAP[resource.type].child;
-  if (!childDefinition) return diagnostics;
-  resource.children.forEach((child, index) => {
-    const childLocation = `${location}/${childDefinition.tag}[${index + 1}]`;
-    diagnostics.push(...validateFields(childDefinition.fields, child.attrs, resourcesByName, childLocation, project.device, `${resource.type}/${childDefinition.tag}`));
-    if (childDefinition.tag === "Image" && child.attrs.src) {
+  const resourceDefinition = FORMAT_RESOURCE_DEFINITION_MAP[resource.type];
+  if (!resourceDefinition.child && (!resourceDefinition.extraChildren || resourceDefinition.extraChildren.length === 0)) {
+    return diagnostics;
+  }
+  const tagCounts: Record<string, number> = {};
+  resource.children.forEach((child) => {
+    let childTag = child.tag;
+    if (!childTag) {
+      if (child.attrs.x !== undefined || child.attrs.y !== undefined) {
+        childTag = "Position";
+      } else {
+        childTag = resourceDefinition.child?.tag ?? "Item";
+      }
+    }
+    const childDef = getResourceChildDefinition(resourceDefinition, childTag);
+    tagCounts[childTag] = (tagCounts[childTag] || 0) + 1;
+    const childLocation = `${location}/${childTag}[${tagCounts[childTag]}]`;
+    if (!childDef) {
+      diagnostics.push(item(
+        "error",
+        "unknown-manifest-tag",
+        `${resource.type} 的子元素 ${childTag} 尚未进入格式规范，已原样保留但不能编译`,
+        childLocation,
+      ));
+      return;
+    }
+    diagnostics.push(...validateFields(
+      childDef.fields,
+      child.attrs,
+      resourcesByName,
+      childLocation,
+      project.device,
+      `${resource.type}/${childTag}`,
+    ));
+    if (childTag === "Image" && child.attrs.src) {
       diagnostics.push(...validateImageAsset(project, child.attrs.src, childLocation));
     }
   });
@@ -268,9 +298,15 @@ function validateResource(
     if (target && resource.children.length > target.children.length) diagnostics.push(item("error", "too-many-params", "Param 数量不能多于图片数量", location));
   }
 
+  const hasRecolorTable = Boolean(
+    project.watchface.recolorTable?.trim() ||
+    project.watchface.colorGroupTable?.trim() ||
+    project.themes.some((t) => t.attrs.recolorTable?.trim() || t.attrs.colorGroupTable?.trim())
+  );
+
   if (resource.attrs.supportRecolor === "true") {
-    if (!project.watchface.recolorTable?.trim()) {
-      diagnostics.push(item("error", "missing-recolor-table", "启用 supportRecolor 需要在表盘根节点配置「动态颜色表」(recolorTable)", location));
+    if (!hasRecolorTable) {
+      diagnostics.push(item("error", "missing-recolor-table", "启用 supportRecolor 需要在表盘根节点或主题中配置「动态颜色表」(recolorTable)", location));
     }
     const target = resourcesOfTypes(resourcesByName, resource.attrs.ref, ["Image", "ImageArray"])[0];
     if (target && target.attrs.recolorEnable !== "true") {
@@ -279,19 +315,19 @@ function validateResource(
   }
 
   if ((resource.type === "Image" || resource.type === "ImageArray") && resource.attrs.recolorEnable === "true") {
-    if (!project.watchface.recolorTable?.trim()) {
-      diagnostics.push(item("error", "missing-recolor-table", `资源 ${resource.attrs.name} 开启 recolorEnable 需要在表盘根节点配置「动态颜色表」(recolorTable)`, location));
+    if (!hasRecolorTable) {
+      diagnostics.push(item("error", "missing-recolor-table", `资源 ${resource.attrs.name} 开启 recolorEnable 需要在表盘根节点或主题中配置「动态颜色表」(recolorTable)`, location));
     }
   }
 
   return diagnostics;
 }
 
-function parseColorTable(value: string | undefined, key: string, diagnostics: Diagnostic[]): string[] {
+function parseColorTable(value: string | undefined, key: string, diagnostics: Diagnostic[], location = "/Watchface"): string[] {
   if (!value) return [];
   const colors = value.split(",").map((entry) => entry.trim());
-  if (colors.some((color) => !COLOR_PATTERN.test(color))) diagnostics.push(item("error", "invalid-color-table", `${key} 必须是逗号分隔的 #RRGGBB 颜色`, "/Watchface"));
-  if (new Set(colors.map((color) => color.toLowerCase())).size !== colors.length) diagnostics.push(item("error", "duplicate-table-color", `${key} 不能包含重复颜色`, "/Watchface"));
+  if (colors.some((color) => !COLOR_PATTERN.test(color))) diagnostics.push(item("error", "invalid-color-table", `${key} 必须是逗号分隔的 #RRGGBB 颜色`, location));
+  if (new Set(colors.map((color) => color.toLowerCase())).size !== colors.length) diagnostics.push(item("error", "duplicate-table-color", `${key} 不能包含重复颜色`, location));
   return colors;
 }
 
@@ -380,6 +416,12 @@ export function validateProject(project: WatchfaceProject): Diagnostic[] {
   for (const theme of project.themes) {
     const location = `Theme[@name='${theme.attrs.name || theme.attrs.type || "?"}']`;
     diagnostics.push(...validateFields(FORMAT_STRUCTURE.theme.fields, theme.attrs, resourcesByName, location, project.device, "Theme"));
+    if (theme.attrs.recolorTable) {
+      parseColorTable(theme.attrs.recolorTable, "recolorTable", diagnostics, location);
+    }
+    if (theme.attrs.colorGroupTable) {
+      parseColorTable(theme.attrs.colorGroupTable, "colorGroupTable", diagnostics, location);
+    }
     if (theme.attrs.type === "normal" && !theme.attrs.preview) diagnostics.push(item("warning", "missing-theme-preview", "normal 主题建议设置预览图片", location));
     for (const [layoutIndex, layout] of theme.layouts.entries()) {
       const layoutLocation = `${location}/Layout[${layoutIndex + 1}]`;

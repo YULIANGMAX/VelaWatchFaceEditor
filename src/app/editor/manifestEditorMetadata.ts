@@ -113,8 +113,29 @@ export const MANIFEST_EDITOR_METADATA = {
       "key": "isPhotoAlbumWatchface",
       "label": "照片相册表盘",
       "control": "boolean",
-      "previewSupport": "device",
+      "help": "开启后标定为相册表盘，支持由官方小米运动健康 App 选取用户相册照片注入。"
+    },
+    {
+      "key": "recolorTable",
+      "label": "动态颜色表",
+      "control": "text",
       "hidden": true
+    },
+    {
+      "key": "colorGroupTable",
+      "label": "颜色组表",
+      "control": "text",
+      "hidden": true
+    },
+    {
+      "key": "bg",
+      "label": "背景图片",
+      "control": "reference"
+    },
+    {
+      "key": "fg",
+      "label": "前景图片",
+      "control": "reference"
     }
   ],
   "layoutFields": [
