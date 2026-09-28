@@ -18,7 +18,7 @@ export function DiagnosticsDrawer({
   project,
   onClose,
 }: DiagnosticsDrawerProps) {
-  const setSelection = useEditorStore((state) => state.setSelection);
+  const navigateTo = useEditorStore((state) => state.navigateTo);
   const setSelectedTheme = useEditorStore((state) => state.setSelectedTheme);
   const [severityFilter, setSeverityFilter] = useState<Diagnostic["severity"] | null>(null);
 
@@ -37,14 +37,15 @@ export function DiagnosticsDrawer({
   const navigate = (diagnostic: Diagnostic) => {
     const target = findDiagnosticTarget(project, diagnostic.location);
     if (target.kind === "project") {
-      setSelection({ kind: "project" });
+      navigateTo({ kind: "project" });
     } else if (target.kind === "theme") {
       setSelectedTheme(target.themeId);
+      navigateTo({ kind: "theme", themeId: target.themeId });
     } else if (target.kind === "layout") {
       setSelectedTheme(target.themeId);
-      setSelection({ kind: "layout", themeId: target.themeId, layoutId: target.layoutId });
+      navigateTo({ kind: "layout", themeId: target.themeId, layoutId: target.layoutId });
     } else {
-      setSelection({ kind: "resource", resourceId: target.resourceId });
+      navigateTo({ kind: "resource", resourceId: target.resourceId });
     }
     onClose();
   };

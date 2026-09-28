@@ -470,8 +470,19 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
   const previewMetrics = useEditorStore((state) => state.previewMetrics);
   const setSelection = useEditorStore((state) => state.setSelection);
   const navigateTo = useEditorStore((state) => state.navigateTo);
-  const lastSelectedResourceIdRef = useRef<string | null>(null);
-  const lastSelectedLayoutIdRef = useRef<string | null>(null);
+  const [tab, setTab] = useState<SidebarTab>("layouts");
+  const [collapsedResourceGroups, setCollapsedResourceGroups] = useState<Set<ResourceGroupName>>(() => new Set(RESOURCE_GROUP_ORDER));
+  const [thumbnailNow, setThumbnailNow] = useState(() => new Date());
+  const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [draggedLayoutId, setDraggedLayoutId] = useState<string | null>(null);
+  const [dropTargetLayout, setDropTargetLayout] = useState<{ id: string; position: "before" | "after" } | null>(null);
+  const [draggedResourceId, setDraggedResourceId] = useState<string | null>(null);
+  const [dropTargetResource, setDropTargetResource] = useState<{ id: string; position: "before" | "after" } | null>(null);
+  const [activeFolder, setActiveFolder] = useState("");
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
+    () => new Set(project.assetFolders ?? []),
+  );
 
   const selectedLayoutRowRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
@@ -480,48 +491,34 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
   }, []);
 
   useEffect(() => {
-    if (selection.kind !== "resource") {
-      lastSelectedResourceIdRef.current = null;
-      return;
+    if (selection.kind === "resource") {
+      setTab("resources");
+      const resource = project.resources.find((entry) => entry.id === selection.resourceId);
+      if (resource) {
+        const group = RESOURCE_DEFINITION_MAP[resource.type]?.group as ResourceGroupName | undefined;
+        if (group) {
+          setCollapsedResourceGroups((current) => {
+            if (!current.has(group)) return current;
+            const next = new Set(current);
+            next.delete(group);
+            return next;
+          });
+        }
+      }
+      const timer = setTimeout(() => {
+        document.querySelector(".resource-row.is-selected")?.scrollIntoView({ block: "center", behavior: "smooth" });
+      }, 50);
+      return () => clearTimeout(timer);
+    } else if (selection.kind === "layout") {
+      setTab("layouts");
+      const timer = setTimeout(() => {
+        document.querySelector(".layout-row.is-selected")?.scrollIntoView({ block: "center", behavior: "smooth" });
+      }, 50);
+      return () => clearTimeout(timer);
+    } else if (selection.kind === "theme") {
+      setTab("layouts");
     }
-    const resourceIdChanged = lastSelectedResourceIdRef.current !== selection.resourceId;
-    lastSelectedResourceIdRef.current = selection.resourceId;
-    if (!resourceIdChanged) return;
-
-    setTab("resources");
-    const resource = project.resources.find((entry) => entry.id === selection.resourceId);
-    if (resource) {
-      const group = RESOURCE_DEFINITION_MAP[resource.type].group as ResourceGroupName;
-      setCollapsedResourceGroups((current) => {
-        if (!current.has(group)) return current;
-        const next = new Set(current);
-        next.delete(group);
-        return next;
-      });
-    }
-    const scrollSelected = () => {
-      document.querySelector(".resource-row.is-selected")?.scrollIntoView({ block: "center", behavior: "auto" });
-    };
-    scrollSelected();
-    window.requestAnimationFrame(scrollSelected);
-  }, [project.resources, selection]);
-
-  useEffect(() => {
-    if (selection.kind !== "layout") {
-      lastSelectedLayoutIdRef.current = null;
-      return;
-    }
-    const layoutIdChanged = lastSelectedLayoutIdRef.current !== selection.layoutId;
-    lastSelectedLayoutIdRef.current = selection.layoutId;
-    if (!layoutIdChanged) return;
-
-    setTab("layouts");
-    const scrollSelected = () => {
-      document.querySelector(".layout-row.is-selected")?.scrollIntoView({ block: "center", behavior: "auto" });
-    };
-    scrollSelected();
-    window.requestAnimationFrame(scrollSelected);
-  }, [selection]);
+  }, [selection, project.resources]);
 
   const addLayout = useEditorStore((state) => state.addLayout);
   const duplicateLayout = useEditorStore((state) => state.duplicateLayout);
@@ -540,19 +537,6 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
   const moveAssets = useEditorStore((state) => state.moveAssets);
   const moveAssetFolder = useEditorStore((state) => state.moveAssetFolder);
   const renameAssetFolder = useEditorStore((state) => state.renameAssetFolder);
-  const [tab, setTab] = useState<SidebarTab>("layouts");
-  const [thumbnailNow, setThumbnailNow] = useState(() => new Date());
-  const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [draggedLayoutId, setDraggedLayoutId] = useState<string | null>(null);
-  const [dropTargetLayout, setDropTargetLayout] = useState<{ id: string; position: "before" | "after" } | null>(null);
-  const [draggedResourceId, setDraggedResourceId] = useState<string | null>(null);
-  const [collapsedResourceGroups, setCollapsedResourceGroups] = useState<Set<ResourceGroupName>>(() => new Set(RESOURCE_GROUP_ORDER));
-  const [dropTargetResource, setDropTargetResource] = useState<{ id: string; position: "before" | "after" } | null>(null);
-  const [activeFolder, setActiveFolder] = useState("");
-  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(
-    () => new Set(project.assetFolders ?? []),
-  );
 
   const selectedResourceId = selection.kind === "resource" ? selection.resourceId : null;
   const resourceIndexMap = useMemo(() => {

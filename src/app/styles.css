@@ -1315,11 +1315,24 @@ button.directory-gate-button:disabled {
   scroll-margin-bottom: 16px;
 }
 
+@keyframes rowFocusPulse {
+  0% {
+    box-shadow: inset 3px 0 var(--teal), 0 0 0 0 rgba(93, 140, 137, 0.6);
+  }
+  40% {
+    box-shadow: inset 3px 0 var(--teal), 0 0 0 4px rgba(93, 140, 137, 0.35);
+  }
+  100% {
+    box-shadow: inset 3px 0 var(--teal), 0 0 0 0 rgba(93, 140, 137, 0);
+  }
+}
+
 .layout-row.is-selected,
 .resource-row.is-selected {
   background: white;
   border-color: #5d8c89;
   box-shadow: inset 3px 0 var(--teal);
+  animation: rowFocusPulse 0.65s ease-out;
 }
 
 .layout-main,
