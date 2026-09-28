@@ -90,11 +90,17 @@ export function recolorFor(project: WatchfaceProject, resource: WatchfaceResourc
 
 function dataItemVisible(resource: WatchfaceResource, now: Date, preview: WatchfacePreviewContext): boolean {
   if (resource.attrs.renderRule === "hideWhenUnitMismatch") {
-    if (resource.attrs.source === "weatherCurrentTemperatureFahrenheit") return preview.temperatureUnit === "fahrenheit";
-    if (resource.attrs.source === "weatherCurrentTemperature") return preview.temperatureUnit === "celsius";
+    const source = resource.attrs.source || "";
+    if (source.includes("Temperature")) {
+      if (source.endsWith("Fahrenheit")) return preview.temperatureUnit === "fahrenheit";
+      return preview.temperatureUnit === "celsius";
+    }
     return true;
   }
   if (resource.attrs.renderRule !== "hideWhenOutRange") return true;
+  if (resource.type === "DataItemArcProgressBar" || resource.type === "DataItemLineProgressBar") {
+    return true;
+  }
   if (!resource.attrs.valueRange && !resource.attrs.valueRangeSource) return true;
   const start = resource.attrs.valueStartSource ? numericMetric(resource.attrs.valueStartSource, now, preview.metrics) : numberAttr(resource, "valueStart");
   const range = resource.attrs.valueRangeSource ? numericMetric(resource.attrs.valueRangeSource, now, preview.metrics) : numberAttr(resource, "valueRange");

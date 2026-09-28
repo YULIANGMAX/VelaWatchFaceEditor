@@ -478,8 +478,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "显示规则",
           "control": "select",
           "help": "默认 alwaysShow。",
-          "section": "common",
-          "previewSupport": "partial"
+          "section": "common"
         },
         {
           "key": "parameter",
@@ -567,8 +566,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "显示规则",
           "control": "select",
           "help": "默认 alwaysShow。",
-          "section": "common",
-          "previewSupport": "partial"
+          "section": "common"
         },
         {
           "key": "parameter",
@@ -631,8 +629,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "显示规则",
           "control": "select",
           "help": "默认 alwaysShow。",
-          "section": "common",
-          "previewSupport": "partial"
+          "section": "common"
         },
         {
           "key": "parameter",
@@ -726,8 +723,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "显示规则",
           "control": "select",
           "help": "默认 alwaysShow。",
-          "section": "common",
-          "previewSupport": "partial"
+          "section": "common"
         },
         {
           "key": "parameter",
@@ -851,8 +847,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "显示规则",
           "control": "select",
           "help": "默认 alwaysShow。",
-          "section": "common",
-          "previewSupport": "partial"
+          "section": "common"
         },
         {
           "key": "parameter",

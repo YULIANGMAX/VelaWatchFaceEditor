@@ -30,7 +30,13 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
   const range = resource.attrs.valueRangeSource
     ? numericMetric(resource.attrs.valueRangeSource, now, preview.metrics)
     : numberAttr(resource, "valueRange", 100);
-  const progress = clampProgress(numericMetric(resource.attrs.source, now, preview.metrics), start, range);
+  const metricVal = numericMetric(resource.attrs.source, now, preview.metrics);
+  const isOutOfRange = (() => {
+    if (resource.attrs.renderRule !== "hideWhenOutRange") return false;
+    if (!resource.attrs.valueRange && !resource.attrs.valueRangeSource) return false;
+    return metricVal < start || metricVal > start + range;
+  })();
+  const progress = clampProgress(metricVal, start, range);
 
   const width =
     asset.width ??
@@ -122,55 +128,57 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
   return (
     <div className="progress-resource" style={{ width, height }}>
       {backgroundAsset ? <Bitmap asset={backgroundAsset} color={backgroundColor} /> : null}
-      <svg className="progress-svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-        <defs>
-          <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
-            <rect width={width} height={height} fill="#000" />
-            <path
-              d={path}
-              fill="none"
-              stroke="#fff"
-              strokeWidth={barWidth}
-              strokeLinecap={strokeLinecap}
-            />
-            {arc && progress > 0 && barWidth > 0 ? (
-              <circle
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r={barWidth / 2}
-                fill="#fff"
+      {!isOutOfRange ? (
+        <svg className="progress-svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+          <defs>
+            <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
+              <rect width={width} height={height} fill="#000" />
+              <path
+                d={path}
+                fill="none"
+                stroke="#fff"
+                strokeWidth={barWidth}
+                strokeLinecap={strokeLinecap}
               />
+              {arc && progress > 0 && barWidth > 0 ? (
+                <circle
+                  cx={startPoint.x}
+                  cy={startPoint.y}
+                  r={barWidth / 2}
+                  fill="#fff"
+                />
+              ) : null}
+            </mask>
+            <clipPath id={indicatorClipId}>
+              {/* 真机实测：组件坐标系原点 (0, 0) 为硬边界，x < 0 与 y < 0 均会被固件裁切，下方及右侧保留 */}
+              <rect x="0" y="0" width="20000" height="20000" />
+            </clipPath>
+            {progressColor ? (
+              <filter id={recolorFilterId} colorInterpolationFilters="sRGB">
+                <feColorMatrix type="matrix" values={colorMatrixValues} />
+              </filter>
             ) : null}
-          </mask>
-          <clipPath id={indicatorClipId}>
-            {/* 真机实测：组件坐标系原点 (0, 0) 为硬边界，x < 0 与 y < 0 均会被固件裁切，下方及右侧保留 */}
-            <rect x="0" y="0" width="20000" height="20000" />
-          </clipPath>
-          {progressColor ? (
-            <filter id={recolorFilterId} colorInterpolationFilters="sRGB">
-              <feColorMatrix type="matrix" values={colorMatrixValues} />
-            </filter>
-          ) : null}
-        </defs>
-        <image
-          href={asset.url}
-          width={width}
-          height={height}
-          mask={`url(#${maskId})`}
-          filter={progressColor ? `url(#${recolorFilterId})` : undefined}
-        />
-        {indicatorAsset ? (
+          </defs>
           <image
-            href={indicatorAsset.url}
-            x={point.x - indicatorWidth / 2}
-            y={point.y - indicatorHeight / 2}
-            width={indicatorWidth}
-            height={indicatorHeight}
-            clipPath={arc ? undefined : `url(#${indicatorClipId})`}
-            transform={arc ? `rotate(${indicatorAngle} ${point.x} ${point.y})` : undefined}
+            href={asset.url}
+            width={width}
+            height={height}
+            mask={`url(#${maskId})`}
+            filter={progressColor ? `url(#${recolorFilterId})` : undefined}
           />
-        ) : null}
-      </svg>
+          {indicatorAsset ? (
+            <image
+              href={indicatorAsset.url}
+              x={point.x - indicatorWidth / 2}
+              y={point.y - indicatorHeight / 2}
+              width={indicatorWidth}
+              height={indicatorHeight}
+              clipPath={arc ? undefined : `url(#${indicatorClipId})`}
+              transform={arc ? `rotate(${indicatorAngle} ${point.x} ${point.y})` : undefined}
+            />
+          ) : null}
+        </svg>
+      ) : null}
     </div>
   );
 }
