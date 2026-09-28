@@ -458,9 +458,16 @@ export function ImageValuesView({
   if (!array || array.type !== "ImageArray") return <Placeholder label="图片序列未设置" />;
   const value = numericMetric(resource.attrs.source, now, preview.metrics);
   let index = 0;
-  resource.children.forEach((child, childIndex) => {
-    const threshold = Number(child.attrs.value);
-    if (Number.isFinite(threshold) && value >= threshold) index = childIndex;
-  });
+  if (resource.children.length > 0) {
+    resource.children.forEach((child, childIndex) => {
+      const threshold = Number(child.attrs.value);
+      if (Number.isFinite(threshold) && value >= threshold) index = childIndex;
+    });
+  } else {
+    const numericIndex = Math.floor(value);
+    if (Number.isFinite(numericIndex)) {
+      index = Math.max(0, Math.min(numericIndex, Math.max(0, array.children.length - 1)));
+    }
+  }
   return <ArrayFrame project={project} resource={array} index={index} preview={preview} ignoreRecolor={!isRecolorSupported} />;
 }

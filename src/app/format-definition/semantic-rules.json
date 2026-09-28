@@ -58,15 +58,6 @@
       "message": "ImageArray 至少需要一张图片"
     },
     {
-      "id": "image-values-not-empty",
-      "kind": "childCount",
-      "target": { "scope": "resource", "resourceTypes": ["DataItemImageValues"] },
-      "minimum": 1,
-      "code": "empty-image-values",
-      "severity": "error",
-      "message": "DataItemImageValues 至少需要一个 Param"
-    },
-    {
       "id": "translation-not-empty",
       "kind": "childCount",
       "target": { "scope": "resource", "resourceTypes": ["Translation"] },
