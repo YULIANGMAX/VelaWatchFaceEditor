@@ -25,20 +25,18 @@ export function widgetRowPositions(
   if (items.length === 0) return [];
   let rawCursor = 0;
   const rawPositions = items.map((item) => {
-    if (item.align === "center") rawCursor -= item.width / 2;
-    else if (item.align === "right") rawCursor -= item.width;
     const position = rawCursor;
     rawCursor += item.width + gap;
     return position;
   });
 
-  const contentRight = Math.max(...rawPositions.map((pos, index) => pos + items[index].width));
+  const totalContentWidth = items.reduce((sum, item) => sum + item.width, 0) + Math.max(0, items.length - 1) * gap;
 
   let offset = 0;
   if (justifyContent === "center") {
-    offset = (widgetWidth - contentRight) / 2;
+    offset = (widgetWidth - totalContentWidth) / 2;
   } else if (justifyContent === "flex-end") {
-    offset = widgetWidth - contentRight;
+    offset = widgetWidth - totalContentWidth;
   }
 
   return rawPositions.map((pos) => pos + offset);

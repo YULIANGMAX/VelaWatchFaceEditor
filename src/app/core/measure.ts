@@ -216,8 +216,23 @@ function measureResourceRaw(
         };
       }
 
-      default:
+      case "DataItemText": {
+        const w = Number(resource.attrs.w);
+        const h = Number(resource.attrs.h);
+        return {
+          width: Number.isFinite(w) && w > 0 ? w : 0,
+          height: Number.isFinite(h) && h > 0 ? h : 0,
+        };
+      }
+
+      default: {
+        const w = Number(resource.attrs.w);
+        const h = Number(resource.attrs.h);
+        if (Number.isFinite(w) && w > 0 && Number.isFinite(h) && h > 0) {
+          return { width: w, height: h };
+        }
         return { width: 0, height: 0 };
+      }
     }
 }
 

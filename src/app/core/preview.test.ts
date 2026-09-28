@@ -18,26 +18,38 @@ import {
 import { recolorFor } from "../components/renderers/common";
 
 describe("表盘预览计算", () => {
-  it("横向带单位图片数字按游标定位", () => {
-    const item = (align: string): { align: string; width: number; unitWidth: number } => ({ align, width: 126, unitWidth: 50 });
-    expect(widgetRowPositions(252, "center", 0, [item("center"), item("center")])).toEqual([0, 63]);
-    expect(widgetRowPositions(252, "center", 0, [item("left"), item("center")])).toEqual([31.5, 94.5]);
+  it("横向排布按流式盒模型与 gap 步进定位（真机实测对齐）", () => {
+    const item = (align: string, width = 126): { align: string; width: number; unitWidth: number } => ({ align, width, unitWidth: 0 });
+    
+    // 两个宽 126px 元素，容器宽 252px
+    expect(widgetRowPositions(252, "center", 0, [item("center"), item("center")])).toEqual([0, 126]);
+    expect(widgetRowPositions(252, "center", 0, [item("left"), item("center")])).toEqual([0, 126]);
     expect(widgetRowPositions(252, "center", 0, [item("left"), item("left")])).toEqual([0, 126]);
-    expect(widgetRowPositions(252, "center", 0, [item("center"), item("left")])).toEqual([-31.5, 94.5]);
-    expect(widgetRowPositions(252, "center", 0, [item("center")])).toEqual([31.5]);
+    expect(widgetRowPositions(252, "center", 0, [item("center")])).toEqual([63]);
     expect(widgetRowPositions(252, "flex-end", 0, [item("left"), item("left")])).toEqual([0, 126]);
-    const shortItem = (align: string): { align: string; width: number; unitWidth: number } => ({ align, width: 88, unitWidth: 50 });
-    expect(widgetRowPositions(252, "flex-end", 0, [shortItem("left"), item("left")])).toEqual([38, 126]);
-    expect(widgetRowPositions(252, "center", 0, [shortItem("center"), item("center")])).toEqual([28.5, 53.5]);
-    expect(widgetRowPositions(252, "center", 0, [shortItem("left"), item("center")])).toEqual([50.5, 75.5]);
-    expect(widgetRowPositions(252, "center", 0, [shortItem("left"), item("left")])).toEqual([19, 107]);
-    expect(widgetRowPositions(252, "center", 0, [shortItem("center"), item("left")])).toEqual([-3, 85]);
 
-    // 真机实测验证：电量组件（右对齐数值 68px + 电池图标 24px，Widget 宽 300px）
+    // 宽 88px 与 126px，总宽 214px，容器宽 252px
+    expect(widgetRowPositions(252, "flex-end", 0, [item("left", 88), item("left", 126)])).toEqual([38, 126]);
+    expect(widgetRowPositions(252, "center", 0, [item("center", 88), item("center", 126)])).toEqual([19, 107]);
+    expect(widgetRowPositions(252, "center", 0, [item("left", 88), item("center", 126)])).toEqual([19, 107]);
+
+    // 真机实测组 4：图文混排（图标 54px + 步数 100px + 单位 60px，gap=8，Widget 宽 360px，居中）
+    const grp4Icon = { align: undefined, width: 54, unitWidth: 0 };
+    const grp4Step = { align: "left", width: 100, unitWidth: 0 };
+    const grp4Unit = { align: "left", width: 60, unitWidth: 0 };
+    expect(widgetRowPositions(360, "center", 8, [grp4Icon, grp4Step, grp4Unit])).toEqual([65, 127, 235]);
+
+    // 真机实测组 5：不同 align 锚点混合排版（L=70, C=70, R=70，gap=12，Widget 宽 360px，居中）
+    const grp5L = { align: "left", width: 70, unitWidth: 0 };
+    const grp5C = { align: "center", width: 70, unitWidth: 0 };
+    const grp5R = { align: "right", width: 70, unitWidth: 0 };
+    expect(widgetRowPositions(360, "center", 12, [grp5L, grp5C, grp5R])).toEqual([63, 145, 227]);
+
+    // 电量组件（数值 68px + 图标 24px，总宽 92px，Widget 宽 300px）
     const batteryNum = { align: "right", width: 68, unitWidth: 0 };
     const batteryIcon = { align: undefined, width: 24, unitWidth: 0 };
-    expect(widgetRowPositions(300, "flex-start", 0, [batteryNum, batteryIcon])).toEqual([-68, 0]);
-    expect(widgetRowPositions(300, "center", 0, [batteryNum, batteryIcon])).toEqual([70, 138]);
+    expect(widgetRowPositions(300, "flex-start", 0, [batteryNum, batteryIcon])).toEqual([0, 68]);
+    expect(widgetRowPositions(300, "center", 0, [batteryNum, batteryIcon])).toEqual([104, 172]);
     expect(widgetRowPositions(300, "flex-end", 0, [batteryNum, batteryIcon])).toEqual([208, 276]);
   });
 

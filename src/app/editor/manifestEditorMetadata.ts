@@ -1091,8 +1091,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "key": "gap",
           "label": "元素间距",
           "control": "number",
-          "section": "flex",
-          "previewSupport": "partial"
+          "section": "flex"
         }
       ],
       "child": {

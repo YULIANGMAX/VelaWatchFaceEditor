@@ -77,6 +77,11 @@ function dynamicChildDimensions(
   visited = new Set<string>(),
 ): WidgetChildDimensions {
   if (!target) return { width: 0, height: 0 };
+  const explicitW = Number(target.attrs.w);
+  const explicitH = Number(target.attrs.h);
+  if (target.type !== "Widget" && Number.isFinite(explicitW) && explicitW > 0 && Number.isFinite(explicitH) && explicitH > 0) {
+    return { width: explicitW, height: explicitH };
+  }
   if (target.type === "DataItemImageNumber") {
     return imageNumberDimensions(project, target, now, preview);
   }
@@ -223,7 +228,7 @@ export function WidgetRenderer({
           cursorTop={
             isRowCursorLayout
               ? widgetVerticalPosition(
-                  resource.attrs.align_content,
+                  resource.attrs.align_items || resource.attrs.align_content,
                   widgetHeight,
                   dimensions.height,
                 )

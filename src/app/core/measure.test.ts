@@ -265,5 +265,58 @@ describe("measure 尺寸测量引擎测试", () => {
     const dimB = measureResource(project, parentWidgetB);
     expect(dimB.width).toBe(95);
   });
+
+  it("正确测量 DataItemText 及图文混排 Widget 尺寸", () => {
+    const project = createBlankProject();
+    project.assets["images/heart.png"] = {
+      path: "images/heart.png",
+      url: "blob:heart",
+      width: 54,
+      height: 48,
+      blob: new Blob(),
+      imageMetadataLoaded: true,
+    };
+
+    const iconRes: WatchfaceResource = {
+      id: "res-heart",
+      type: "Image",
+      attrs: { name: "HeartIcon", src: "images/heart.png" },
+      children: [],
+    };
+    const stepRes: WatchfaceResource = {
+      id: "res-step",
+      type: "DataItemText",
+      attrs: { name: "StepText", w: "100", h: "32" },
+      children: [],
+    };
+    const unitRes: WatchfaceResource = {
+      id: "res-unit",
+      type: "DataItemText",
+      attrs: { name: "UnitText", w: "60", h: "22" },
+      children: [],
+    };
+    const mixedWidget: WatchfaceResource = {
+      id: "w-mixed",
+      type: "Widget",
+      attrs: {
+        name: "MixedWidget",
+        flex_direction: "row",
+        gap: "8",
+      },
+      children: [
+        { id: "m1", attrs: { ref: "@HeartIcon" } },
+        { id: "m2", attrs: { ref: "@StepText" } },
+        { id: "m3", attrs: { ref: "@UnitText" } },
+      ],
+    };
+
+    project.resources.push(iconRes, stepRes, unitRes, mixedWidget);
+
+    expect(measureResource(project, stepRes)).toEqual({ width: 100, height: 32 });
+    expect(measureResource(project, unitRes)).toEqual({ width: 60, height: 22 });
+
+    // 54 + 8 + 100 + 8 + 60 = 230，maxH = max(48, 32, 22) = 48
+    expect(measureResource(project, mixedWidget)).toEqual({ width: 230, height: 48 });
+  });
 });
 
