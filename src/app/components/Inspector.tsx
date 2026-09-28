@@ -299,7 +299,8 @@ function ResourcePreview({
   const previewColor = useEditorStore((state) => state.previewColor);
   const previewTemperatureUnit = useEditorStore((state) => state.previewTemperatureUnit);
   const previewMetrics = useEditorStore((state) => state.previewMetrics);
-  const activePreviewColor = previewColor || (project.watchface.recolorTable?.split(",")[0]?.trim() ?? "");
+  const colors = (project.watchface.colorGroupTable || project.watchface.recolorTable || "").split(",").map((c) => c.trim()).filter(Boolean);
+  const activePreviewColor = colors.includes(previewColor) ? previewColor : colors[0] ?? "";
   const imageArray = resource.type === "Sprite"
     ? project.resources.find((entry) => entry.type === "ImageArray" && getResourceName(entry) === refName(resource.attrs.ref))
     : resource.type === "ImageArray" ? resource : undefined;

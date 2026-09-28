@@ -15,6 +15,7 @@ import {
   widgetRowPositions,
   widgetVerticalPosition,
 } from "./preview";
+import { recolorFor } from "../components/renderers/common";
 
 describe("表盘预览计算", () => {
   it("横向带单位图片数字按游标定位", () => {
@@ -189,6 +190,22 @@ describe("表盘预览计算", () => {
     expect(iconRight).toBe(62.5);
     expect(numAbsoluteLeft).toBe(62.5);
     expect(iconRight - numAbsoluteLeft).toBe(0);
+  });
+
+  it("recolorFor 正确解析 recolorTable 与 colorGroupTable 并跟随换色开关", () => {
+    const projectWithRecolor = {
+      watchface: { recolorTable: "#FF0000,#00FF00" },
+    } as any;
+    const projectWithColorGroup = {
+      watchface: { colorGroupTable: "#0000FF,#FFFF00" },
+    } as any;
+    const resRecolorEnabled = { attrs: { recolorEnable: "true" } } as any;
+    const resRecolorDisabled = { attrs: { recolorEnable: "false" } } as any;
+
+    expect(recolorFor(projectWithRecolor, resRecolorEnabled, { color: "#FF0000" } as any)).toBe("#FF0000");
+    expect(recolorFor(projectWithRecolor, resRecolorEnabled, { color: "#123456" } as any)).toBeUndefined();
+    expect(recolorFor(projectWithRecolor, resRecolorDisabled, { color: "#FF0000" } as any)).toBeUndefined();
+    expect(recolorFor(projectWithColorGroup, resRecolorEnabled, { color: "#0000FF" } as any)).toBe("#0000FF");
   });
 });
 

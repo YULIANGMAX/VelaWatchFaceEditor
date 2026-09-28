@@ -480,7 +480,6 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "previewSupport": "device",
           "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
@@ -570,7 +569,6 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "previewSupport": "device",
           "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
@@ -636,7 +634,6 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "previewSupport": "device",
           "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
@@ -732,7 +729,6 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "previewSupport": "device",
           "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {
@@ -858,7 +854,6 @@ export const MANIFEST_EDITOR_METADATA = {
           "label": "跟随换色",
           "control": "boolean",
           "section": "common",
-          "previewSupport": "device",
           "help": "仅在根节点配置「动态颜色表」且引用素材开启「允许换色」时有效。"
         },
         {

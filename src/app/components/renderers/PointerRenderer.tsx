@@ -11,7 +11,8 @@ interface PointerRendererProps {
 }
 
 export function PointerRenderer({ project, resource, now, preview }: PointerRendererProps) {
-  const image = findResource(project, refName(resource.attrs.ref), preview.color);
+  const isRecolorSupported = resource.attrs.supportRecolor === "true";
+  const image = findResource(project, refName(resource.attrs.ref), isRecolorSupported ? preview.color : "");
   if (!image || image.type !== "Image") return <Placeholder label="指针图片未设置" />;
   const progress = clampProgress(
     numericMetric(resource.attrs.source, now, preview.metrics),
@@ -27,7 +28,7 @@ export function PointerRenderer({ project, resource, now, preview }: PointerRend
         transformOrigin: `${numberAttr(resource, "pivotX")}px ${numberAttr(resource, "pivotY")}px`,
       }}
     >
-      <ImageView project={project} resource={image} preview={preview} ignoreRecolor={resource.attrs.supportRecolor !== "true"} />
+      <ImageView project={project} resource={image} preview={preview} ignoreRecolor={!isRecolorSupported} />
     </div>
   );
 }

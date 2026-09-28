@@ -14,6 +14,7 @@ import {
   Maximize2,
   Minus,
   Moon,
+  Palette,
   Plus,
   RotateCcw,
   SlidersHorizontal,
@@ -459,6 +460,9 @@ export function CanvasStage(_props: {
     return value.split(",").map((entry) => entry.trim()).filter(Boolean);
   }, [project.watchface.colorGroupTable, project.watchface.recolorTable]);
   const activePreviewColor = previewColors.includes(previewColor) ? previewColor : previewColors[0] ?? "";
+  const hasRecolorEnabledResources = useMemo(() => {
+    return project.resources.some((r) => r.attrs.supportRecolor === "true" || r.attrs.recolorEnable === "true");
+  }, [project.resources]);
   const hasUnitMismatchResources = useMemo(() => {
     const sources = new Set(project.resources.map((resource) => resource.attrs.source));
     return sources.has("weatherCurrentTemperature") && sources.has("weatherCurrentTemperatureFahrenheit");
@@ -980,15 +984,48 @@ export function CanvasStage(_props: {
             )}
           </div>
         </div>
-        {previewColors.length > 0 || hasUnitMismatchResources ? (
+        {previewColors.length > 0 || hasRecolorEnabledResources || hasUnitMismatchResources ? (
           <div className="canvas-controls">
             {previewColors.length > 0 ? (
-              <label className="preview-color-control" title="仅影响画布预览，不写入 manifest.xml">
-                <span>配色</span>
-                <select value={activePreviewColor} onChange={(event) => setPreviewColor(event.target.value)}>
+              <div className="preview-color-control" role="group" aria-label="预览配色切换" title="仅影响画布预览，不写入 manifest.xml">
+                <Palette size={13} className="preview-control-icon" />
+                <span className="preview-control-label">配色</span>
+                <span
+                  className="preview-color-swatch-badge"
+                  style={{ backgroundColor: activePreviewColor }}
+                  title={`当前预览颜色: ${activePreviewColor}`}
+                />
+                <select
+                  value={activePreviewColor}
+                  onChange={(event) => setPreviewColor(event.target.value)}
+                  aria-label="选择预览配色"
+                >
                   {previewColors.map((color) => <option value={color} key={color}>{color}</option>)}
                 </select>
-              </label>
+                {previewColors.length <= 6 ? (
+                  <div className="preview-color-dots" role="group" aria-label="快捷色块点选">
+                    {previewColors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`preview-color-dot${color.toLowerCase() === activePreviewColor.toLowerCase() ? " is-active" : ""}`}
+                        style={{ backgroundColor: color }}
+                        title={`切换为 ${color}`}
+                        onClick={() => setPreviewColor(color)}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : hasRecolorEnabledResources ? (
+              <div
+                className="preview-color-control is-unconfigured"
+                title="项目中已有图元启用换色，但尚未配置表盘动态颜色表 (recolorTable)。请在项目属性面板中添加动态颜色表以开启换色预览。"
+              >
+                <Palette size={13} className="preview-control-icon" />
+                <span className="preview-control-label">配色</span>
+                <span className="preview-color-empty-tip">未配置颜色表</span>
+              </div>
             ) : null}
             {hasUnitMismatchResources ? (
               <div className="preview-unit-toggle" role="group" aria-label="温度单位切换" title="用于预览 hideWhenUnitMismatch，不写入 manifest.xml">

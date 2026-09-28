@@ -7,7 +7,7 @@ import {
   polarPoint,
 } from "../../core/preview";
 import { refName, type WatchfacePreviewContext, type WatchfaceProject, type WatchfaceResource } from "../../core/model";
-import { Bitmap, findResource, imageAsset, numberAttr, Placeholder } from "./common";
+import { Bitmap, findResource, imageAsset, numberAttr, Placeholder, recolorFor } from "./common";
 
 interface ProgressRendererProps {
   project: WatchfaceProject;
@@ -18,7 +18,8 @@ interface ProgressRendererProps {
 }
 
 export function ProgressRenderer({ project, resource, now, preview, arc }: ProgressRendererProps) {
-  const image = findResource(project, refName(resource.attrs.ref), preview.color);
+  const isRecolorSupported = resource.attrs.supportRecolor === "true";
+  const image = findResource(project, refName(resource.attrs.ref), isRecolorSupported ? preview.color : "");
   if (!image || image.type !== "Image") return <Placeholder label="进度图片未设置" />;
   const asset = imageAsset(project, image.attrs.src);
   if (!asset) return <Placeholder label={image.attrs.src || "缺少进度图片"} />;
@@ -50,8 +51,10 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
 
   const maskId = `progress-mask-${resource.id}`;
   const indicatorClipId = `progress-indicator-clip-${resource.id}`;
+  const recolorFilterId = `progress-recolor-${resource.id}`;
+  const progressColor = isRecolorSupported ? recolorFor(project, image, preview) : undefined;
   const indicator = resource.attrs.indicatorImage
-    ? findResource(project, refName(resource.attrs.indicatorImage), preview.color)
+    ? findResource(project, refName(resource.attrs.indicatorImage), isRecolorSupported ? preview.color : "")
     : undefined;
   const indicatorAsset = indicator?.type === "Image" ? imageAsset(project, indicator.attrs.src) : undefined;
   const indicatorWidth = indicatorAsset?.width ?? 16;
@@ -63,8 +66,19 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
   let point = { x: 0, y: 0 };
   let startPoint = { x: 0, y: 0 };
   let indicatorAngle = 0;
-  const background = resource.attrs.bg ? findResource(project, refName(resource.attrs.bg), preview.color) : undefined;
+  const background = resource.attrs.bg
+    ? findResource(project, refName(resource.attrs.bg), isRecolorSupported ? preview.color : "")
+    : undefined;
   const backgroundAsset = background?.type === "Image" ? imageAsset(project, background.attrs.src) : undefined;
+  const backgroundColor = isRecolorSupported && background ? recolorFor(project, background, preview) : undefined;
+
+  let colorMatrixValues = "";
+  if (progressColor) {
+    const r = Number.parseInt(progressColor.slice(1, 3), 16) / 255;
+    const g = Number.parseInt(progressColor.slice(3, 5), 16) / 255;
+    const b = Number.parseInt(progressColor.slice(5, 7), 16) / 255;
+    colorMatrixValues = `${r} 0 0 0 0  0 ${g} 0 0 0  0 0 ${b} 0 0  0 0 0 1 0`;
+  }
 
   if (arc) {
     const clipAngles = arcProgressClipAngles(
@@ -107,7 +121,7 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
 
   return (
     <div className="progress-resource" style={{ width, height }}>
-      {backgroundAsset ? <Bitmap asset={backgroundAsset} /> : null}
+      {backgroundAsset ? <Bitmap asset={backgroundAsset} color={backgroundColor} /> : null}
       <svg className="progress-svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
         <defs>
           <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
@@ -132,8 +146,19 @@ export function ProgressRenderer({ project, resource, now, preview, arc }: Progr
             {/* 真机实测：组件坐标系原点 (0, 0) 为硬边界，x < 0 与 y < 0 均会被固件裁切，下方及右侧保留 */}
             <rect x="0" y="0" width="20000" height="20000" />
           </clipPath>
+          {progressColor ? (
+            <filter id={recolorFilterId} colorInterpolationFilters="sRGB">
+              <feColorMatrix type="matrix" values={colorMatrixValues} />
+            </filter>
+          ) : null}
         </defs>
-        <image href={asset.url} width={width} height={height} mask={`url(#${maskId})`} />
+        <image
+          href={asset.url}
+          width={width}
+          height={height}
+          mask={`url(#${maskId})`}
+          filter={progressColor ? `url(#${recolorFilterId})` : undefined}
+        />
         {indicatorAsset ? (
           <image
             href={indicatorAsset.url}

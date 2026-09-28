@@ -310,7 +310,8 @@ export function ImageNumberView({
   preview: WatchfacePreviewContext;
   renderResource: (resourceName: string) => React.ReactNode;
 }) {
-  const array = findResource(project, refName(resource.attrs.ref), preview.color);
+  const isRecolorSupported = resource.attrs.supportRecolor === "true";
+  const array = findResource(project, refName(resource.attrs.ref), isRecolorSupported ? preview.color : "");
   if (!array || array.type !== "ImageArray") return <Placeholder label="数字序列未设置" />;
   const decimalDigits = numberAttr(resource, "decimalDigits");
   const totalDigits = Math.max(1, numberAttr(resource, "totalDigits", 2));
@@ -452,7 +453,8 @@ export function ImageValuesView({
   now: Date;
   preview: WatchfacePreviewContext;
 }) {
-  const array = findResource(project, refName(resource.attrs.ref), preview.color);
+  const isRecolorSupported = resource.attrs.supportRecolor === "true";
+  const array = findResource(project, refName(resource.attrs.ref), isRecolorSupported ? preview.color : "");
   if (!array || array.type !== "ImageArray") return <Placeholder label="图片序列未设置" />;
   const value = numericMetric(resource.attrs.source, now, preview.metrics);
   let index = 0;
@@ -460,5 +462,5 @@ export function ImageValuesView({
     const threshold = Number(child.attrs.value);
     if (Number.isFinite(threshold) && value >= threshold) index = childIndex;
   });
-  return <ArrayFrame project={project} resource={array} index={index} preview={preview} ignoreRecolor={resource.attrs.supportRecolor !== "true"} />;
+  return <ArrayFrame project={project} resource={array} index={index} preview={preview} ignoreRecolor={!isRecolorSupported} />;
 }

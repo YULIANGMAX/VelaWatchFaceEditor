@@ -489,6 +489,8 @@ export function FieldInput({
   resourceAttrs,
 }: FieldInputProps) {
   const navigateTo = useEditorStore((state) => state.navigateTo);
+  const previewColor = useEditorStore((state) => state.previewColor);
+  const setPreviewColor = useEditorStore((state) => state.setPreviewColor);
   disabled = disabled || Boolean(field.readOnly);
   const allowedValues = target ? getManifestAttributeAllowedValues(project.device, target, field.key) : undefined;
   const id = `field-${field.key}`;
@@ -516,7 +518,7 @@ export function FieldInput({
     let recolorBlockedReason: string | null = null;
 
     if (nextValue === "true") {
-      const hasRecolorTable = Boolean(project.watchface.recolorTable?.trim());
+      const hasRecolorTable = Boolean(project.watchface.recolorTable?.trim() || project.watchface.colorGroupTable?.trim());
       if (field.key === "recolorEnable") {
         if (!hasRecolorTable) {
           recolorBlocked = true;
@@ -709,6 +711,10 @@ export function FieldInput({
     }
 
     const placeholderText = customPlaceholder || (field.required ? "必填" : "未设置");
+    const isColorTableField = field.key === "recolorTable" || field.key === "colorGroupTable";
+    const parsedColors = isColorTableField
+      ? value.split(",").map((c) => c.trim()).filter((c) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c))
+      : [];
 
     return (
       <div className={field.kind === "color" ? "color-input-wrap" : (field.action || computableValue !== undefined) ? "input-action-wrap" : undefined}>
@@ -755,6 +761,22 @@ export function FieldInput({
           >
             <RefreshCw size={14} />
           </button>
+        ) : null}
+        {parsedColors.length > 0 ? (
+          <div className="recolor-swatches-strip" role="group" aria-label="配色预览">
+            {parsedColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={`recolor-swatch-chip${color.toLowerCase() === previewColor.toLowerCase() ? " is-active" : ""}`}
+                style={{ backgroundColor: color }}
+                title={`点击设为当前画布预览色: ${color}`}
+                onClick={() => setPreviewColor(color)}
+              >
+                <span className="recolor-swatch-chip-hex">{color}</span>
+              </button>
+            ))}
+          </div>
         ) : null}
       </div>
     );
