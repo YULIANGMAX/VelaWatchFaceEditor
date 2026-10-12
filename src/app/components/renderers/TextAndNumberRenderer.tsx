@@ -105,7 +105,7 @@ function getFontFamily(fontId?: string): string {
     case "misanstc":
       return "'MiSansTC VF', misanstc, 'MiSans VF', sans-serif";
     case "notosans":
-      return "'Noto Sans', notosans, 'MiSans VF', sans-serif";
+      return "'MiSans VF', misans, 'Noto Sans', notosans, sans-serif";
     default:
       return "'MiSansLatin VF', 'MiSans VF', misans, sans-serif";
   }
@@ -200,6 +200,7 @@ export function TextView({
     fontWeight: textWeight(resource.attrs.fontWeight),
     letterSpacing: `${numberAttr(resource, "letterSpace")}px`,
     fontFamily: getFontFamily(resource.attrs.fontId),
+    fontVariantNumeric: "proportional-nums",
   };
 
   if (resource.attrs.style === "arc") {
@@ -282,6 +283,8 @@ export function TextView({
         lineHeight: `${computedLineHeight}px`,
         textAlign: resource.attrs.align === "right" ? "right" : resource.attrs.align === "center" ? "center" : "left",
         whiteSpace: longMode === "wrap" ? "normal" : "nowrap",
+        wordBreak: longMode === "wrap" ? "break-all" : undefined,
+        overflowWrap: longMode === "wrap" ? "anywhere" : undefined,
         overflow: "hidden",
         textOverflow: longMode === "clip" ? "clip" : undefined,
       }}

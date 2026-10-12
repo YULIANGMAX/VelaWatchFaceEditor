@@ -359,8 +359,7 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "fontId",
           "label": "字体",
-          "control": "select",
-          "previewSupport": "partial"
+          "control": "select"
         },
         {
           "key": "fontSize",
@@ -385,22 +384,19 @@ export const MANIFEST_EDITOR_METADATA = {
         {
           "key": "letterSpace",
           "label": "字间距",
-          "control": "number",
-          "previewSupport": "partial"
+          "control": "number"
         },
         {
           "key": "lineSpace",
           "label": "行间距",
           "control": "number",
-          "section": "normal",
-          "previewSupport": "partial"
+          "section": "normal"
         },
         {
           "key": "longMode",
           "label": "溢出处理",
           "control": "select",
-          "section": "normal",
-          "previewSupport": "partial"
+          "section": "normal"
         },
         {
           "key": "style",
@@ -422,8 +418,7 @@ export const MANIFEST_EDITOR_METADATA = {
           "key": "verticalAlign",
           "label": "垂直对齐",
           "control": "select",
-          "section": "arc",
-          "previewSupport": "partial"
+          "section": "arc"
         },
         {
           "key": "startAngle",
