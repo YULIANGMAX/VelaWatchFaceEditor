@@ -1,6 +1,6 @@
 import { AlertTriangle, FolderOpen, Loader2, Trash2 } from "lucide-react";
 import { AppIcon } from "../AppIcon";
-import type { Diagnostic } from "../../core/model";
+import { PROJECT_EDITOR_VERSION, type Diagnostic } from "../../core/model";
 import { MAX_DISPLAYED_RECENT_PROJECTS, type RecentProjectDirectory } from "../../core/recentProject";
 import type { ProjectLoadProgress } from "../../core/projectIO";
 
@@ -40,6 +40,9 @@ export function ProjectDirectoryGate({
         <span className="eyebrow">VELA WATCH FACE EDITOR</span>
         <h1 id="directory-gate-title">
           {restoring ? "正在读取最近项目" : "Vela 表盘编辑器"}
+          {!restoring ? (
+            <span className="directory-gate-version-badge">v{PROJECT_EDITOR_VERSION}</span>
+          ) : null}
         </h1>
         {restoring ? <p>正在读取最近使用过的项目目录。</p> : null}
 
