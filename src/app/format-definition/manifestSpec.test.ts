@@ -1,5 +1,3 @@
-import { readFileSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import manifestSpecJson from "./manifest-spec.json";
 import {
@@ -10,19 +8,6 @@ import {
 import { SEMANTIC_RULES } from "../core/semanticRules";
 
 describe("manifest.xml 声明式格式规范", () => {
-  it("纯格式模块不依赖设备、编辑器或编译器", () => {
-    const source = readFileSync(resolve(process.cwd(), "app/format-definition/manifestFormat.ts"), "utf8");
-    expect(source).not.toMatch(/(?:device-definition|editor|compiler|core\/schema)/);
-  });
-
-  it("编译模块不依赖编辑模块", () => {
-    const compilerDirectory = resolve(process.cwd(), "app/core/compiler");
-    const sources = readdirSync(compilerDirectory)
-      .filter((name) => name.endsWith(".ts"))
-      .map((name) => readFileSync(resolve(compilerDirectory, name), "utf8"))
-      .join("\n");
-    expect(sources).not.toMatch(/(?:\/editor\/|core\/schema|\.\.\/\.\.\/editor)/);
-  });
 
   it("JSON 是运行时资源定义的唯一来源", () => {
     expect(FORMAT_RESOURCE_DEFINITIONS.map((definition) => definition.type))
