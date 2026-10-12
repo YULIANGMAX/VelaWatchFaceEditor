@@ -103,8 +103,8 @@ describe("validation helpers", () => {
         attrs: { name: "Image12", src: "bg.png" },
         children: [],
       });
-      project.assets["preview.png"] = { url: "blob://preview", width: 100, height: 100 };
-      project.assets["bg.png"] = { url: "blob://bg", width: 100, height: 100 };
+      project.assets["preview.png"] = { path: "preview.png", blob: new Blob(), url: "blob://preview", width: 100, height: 100 };
+      project.assets["bg.png"] = { path: "bg.png", blob: new Blob(), url: "blob://bg", width: 100, height: 100 };
       project.themes[0]!.attrs = {
         type: "normal",
         name: "样式1",

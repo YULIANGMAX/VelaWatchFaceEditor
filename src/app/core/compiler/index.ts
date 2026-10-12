@@ -242,7 +242,6 @@ function resourceReferences(resource: WatchfaceResource): string[] {
 
 function reachableResources(
   roots: string[],
-  byName: Map<string, IndexedResource>,
   allByName: Map<string, IndexedResource[]>,
 ): IndexedResource[] {
   const result = new Set<IndexedResource>();
@@ -257,10 +256,6 @@ function reachableResources(
   };
   for (const root of roots) visit(root);
   return [...result];
-}
-
-function resourceKey(type: number, index: number): string {
-  return `resource:${type}:${index}`;
 }
 
 function layoutKey(face: number, index: number): string {
@@ -490,7 +485,7 @@ export async function compileWatchface(
         nextLayoutIndex += 1;
       });
       const reachable = reachableResources(
-        theme.layouts.map((layout) => refName(layout.attrs.ref)), byName, allByName,
+        theme.layouts.map((layout) => refName(layout.attrs.ref)), allByName,
       );
       for (const entry of reachable) {
         const key = entry.payloadKey;
@@ -580,8 +575,7 @@ export async function compileWatchface(
     output[0x1d] = totalColors;
     const normalThemeCount = input.themes.filter((theme) => theme.attrs.type !== "AOD").length;
     const hasColors = totalColors > 0;
-    const isEditable = input.watchface.editable === "true"
-      || input.watchface.editable === true
+    const isEditable = String(input.watchface.editable) === "true"
       || hasColors
       || indexed.some((entry) => entry.type === 8)
       || normalThemeCount > 1;

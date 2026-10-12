@@ -89,7 +89,7 @@ npm run dev
 # 3. 严格类型检查 (0 错误)
 npm run typecheck
 
-# 4. 执行全套单元测试 (26 个套件，137 项测试全通)
+# 4. 执行全套单元测试 (26 个套件，162 项测试全通)
 npm test
 
 # 5. 前端静态包构建 (输出到 dist/)
@@ -100,7 +100,21 @@ npm run tauri:dev
 
 # 7. 桌面端绿色版构建 (编译独立可执行文件，不生成安装包)
 npm run tauri:build
+
+# 8. 同步全案版本号 (自动同步 package.json 至 Tauri 与 Cargo)
+npm run version:sync
+
+# 9. 一键设定新版本号并全案同步
+npm run version:sync -- 0.2.1
 ```
+
+### 3. 版本号更新与发版流程
+
+本项目采用 **单一版本源（Single Source of Truth）** 机制，全案版本号以 `src/package.json` 中的 `"version"` 为唯一权威来源：
+
+- **发版前修改版本号（仅需改动一处）**：
+  直接打开 `src/package.json`，修改 `"version": "x.y.z"`。
+  随后无论执行 `npm run build`、`npm run dev`、`02-build-desktop.bat`，各预构建钩子（`prebuild` / `pretauri:build` 等）均会**在编译前自动同步**更新 `src/src-tauri/tauri.conf.json` 与 `src/src-tauri/Cargo.toml`，前端界面亦通过 Vite `define` 实时编译期注入，无需手动维护任何中间文件。
 
 ---
 

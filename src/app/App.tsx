@@ -566,6 +566,16 @@ export function App() {
 
   const hasActiveProject = Boolean(projectDirectory || isVirtualProject);
 
+  useEffect(() => {
+    const baseTitle = `Vela 表盘编辑器 v${PROJECT_EDITOR_VERSION}`;
+    if (!hasActiveProject) {
+      document.title = baseTitle;
+      return;
+    }
+    const projectName = project.description.name || watchfaceDisplayName(project);
+    document.title = `${projectName} · ${baseTitle}`;
+  }, [hasActiveProject, project]);
+
   useKeyboardShortcuts({
     onSave: () => {
       if (!clean && !saving) void saveProject();
@@ -776,12 +786,6 @@ export function App() {
             {errorCount ? <AlertTriangle size={13} /> : <ShieldCheck size={13} />}
             <span>{errorCount ? `${errorCount} 错误` : warningCount ? `${warningCount} 警告` : "良好"}</span>
           </button>
-
-          <div className="topbar-divider" />
-
-          <span className="topbar-app-version" title={`Vela 表盘编辑器 v${PROJECT_EDITOR_VERSION}`}>
-            v{PROJECT_EDITOR_VERSION}
-          </span>
         </div>
       </header>
 

@@ -20,7 +20,7 @@ export {
   type DeviceProfile,
   type DeviceType,
 };
-export const PROJECT_EDITOR_VERSION = "0.2.0";
+export const PROJECT_EDITOR_VERSION = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.0.0";
 
 export type ResourceType = (typeof manifestSpec.resources)[number]["type"];
 
@@ -65,6 +65,7 @@ export interface WatchfacePreviewContext {
   elapsedMs: number;
   temperatureUnit: "celsius" | "fahrenheit";
   metrics: Record<string, number | string>;
+  themeId?: string;
 }
 
 export type ManifestExtensionParent = "Watchface" | "Resources" | "Theme" | "Resource";

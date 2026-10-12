@@ -207,7 +207,8 @@ export function ResourceRenderer({
         <Placeholder
           label={
             resource.children.find((child) => child.attrs.language === "zh_CN")?.attrs.str ||
-            resourceName
+            resourceName ||
+            ""
           }
         />
       );
