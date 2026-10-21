@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Check,
   Copy,
+  Edit3,
   Eye,
   File,
   FileCode,
@@ -27,8 +28,9 @@ import {
 } from "../editor/manifestEditorSchema";
 import { useEditorStore, type Selection } from "../store/editorStore";
 import { dialogManager } from "../core/dialog";
-import { deleteResourceFile } from "../core/projectIO";
+import { deleteResourceFile, writeResourceTextFile } from "../core/projectIO";
 import { InspectorCard, InspectorHeader, InspectorNavigation } from "./Inspector";
+import { CodeEditorDialog } from "./dialogs/CodeEditorDialog";
 
 export type AssetReference =
   | { kind: "watchface"; fieldLabel: string; selection: Selection }
@@ -263,6 +265,7 @@ export const AssetInspector = memo(function AssetInspector({
 }: AssetInspectorProps) {
   const asset = project.assets[assetPath];
   const removeAsset = useEditorStore((state) => state.removeAsset);
+  const updateAssetContent = useEditorStore((state) => state.updateAssetContent);
 
   const [copied, setCopied] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
@@ -271,6 +274,7 @@ export const AssetInspector = memo(function AssetInspector({
 
   const [textContent, setTextContent] = useState<string | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   const isImg = asset ? isImageAsset(asset) : false;
   const isText = asset ? isTextAsset(assetPath, asset.blob) : false;
@@ -281,6 +285,15 @@ export const AssetInspector = memo(function AssetInspector({
   const height = asset?.height || naturalSize?.height || 0;
   const dimensionsStr = width && height ? `${width} × ${height}` : null;
   const aspectRatioStr = width && height ? getAspectRatio(width, height) : "";
+
+  const normalizedText = useMemo(
+    () => (textContent ? textContent.replace(/\r\n/g, "\n") : ""),
+    [textContent],
+  );
+  const textLines = useMemo(
+    () => (normalizedText ? normalizedText.split("\n") : []),
+    [normalizedText],
+  );
 
   // 异步载入文本内容
   useEffect(() => {
@@ -343,6 +356,15 @@ export const AssetInspector = memo(function AssetInspector({
       setTimeout(() => setCopiedContent(false), 1500);
     }
   }, [textContent]);
+
+  // 从弹窗大编辑器保存
+  const handleSaveCode = useCallback(async (newContent: string) => {
+    if (projectDirectory) {
+      await writeResourceTextFile(projectDirectory, assetPath, newContent);
+    }
+    updateAssetContent(assetPath, newContent);
+    setTextContent(newContent);
+  }, [assetPath, projectDirectory, updateAssetContent]);
 
 
   // 永久删除文件
@@ -494,22 +516,36 @@ export const AssetInspector = memo(function AssetInspector({
                 className="asset-type-badge-pill"
                 style={{ backgroundColor: `${typeBadge.color}1f`, color: typeBadge.color }}
               >
-                {textContent !== null ? `${textContent.split("\n").length} 行` : typeBadge.label}
+                {textContent !== null ? `${textLines.length} 行` : typeBadge.label}
               </span>
             }
             headerExtra={
-              <button
-                type="button"
-                className="asset-code-copy-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCopyContent();
-                }}
-                title="复制脚本完整内容"
-              >
-                {copiedContent ? <Check size={12} color="#059669" /> : <Copy size={12} />}
-                <span>{copiedContent ? "已复制" : "复制代码"}</span>
-              </button>
+              <div className="asset-code-header-actions">
+                <button
+                  type="button"
+                  className="asset-code-action-btn is-edit"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditorOpen(true);
+                  }}
+                  title="在大窗口中编辑代码 (独立保存、撤销、重做)"
+                >
+                  <Edit3 size={12} />
+                  <span>编辑</span>
+                </button>
+                <button
+                  type="button"
+                  className="asset-code-action-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyContent();
+                  }}
+                  title="复制脚本完整内容"
+                >
+                  {copiedContent ? <Check size={12} color="#059669" /> : <Copy size={12} />}
+                  <span>{copiedContent ? "已复制" : "复制代码"}</span>
+                </button>
+              </div>
             }
           >
             <div className="asset-code-preview-container">
@@ -518,17 +554,12 @@ export const AssetInspector = memo(function AssetInspector({
               ) : textContent !== null ? (
                 <div className="asset-code-viewer">
                   <div className="asset-code-gutter" aria-hidden="true">
-                    {textContent.split("\n").slice(0, 500).map((_, idx) => (
+                    {textLines.map((_, idx) => (
                       <span key={idx} className="asset-code-line-num">{idx + 1}</span>
                     ))}
                   </div>
                   <pre className="asset-code-body">
-                    <code>
-                      {textContent.split("\n").slice(0, 500).join("\n")}
-                      {textContent.split("\n").length > 500 ? (
-                        `\n\n--- 已截断显示前 500 行，完整内容共 ${textContent.split("\n").length} 行，可点击右上角「复制代码」获取全部 ---`
-                      ) : ""}
-                    </code>
+                    <code>{normalizedText}</code>
                   </pre>
                 </div>
               ) : (
@@ -575,7 +606,7 @@ export const AssetInspector = memo(function AssetInspector({
             {isText && textContent !== null ? (
               <div className="asset-meta-row">
                 <span className="asset-meta-label">代码行数</span>
-                <span className="asset-meta-value">{textContent.split("\n").length} 行</span>
+                <span className="asset-meta-value">{textLines.length} 行</span>
               </div>
             ) : null}
 
@@ -610,6 +641,16 @@ export const AssetInspector = memo(function AssetInspector({
           </button>
         </section>
       </div>
+
+      {isText && textContent !== null ? (
+        <CodeEditorDialog
+          open={isEditorOpen}
+          assetPath={assetPath}
+          initialContent={normalizedText}
+          onSave={handleSaveCode}
+          onClose={() => setIsEditorOpen(false)}
+        />
+      ) : null}
     </aside>
   );
 });

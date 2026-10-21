@@ -10,6 +10,7 @@ import {
   type Attributes,
   type DeviceType,
   type Diagnostic,
+  type ProjectAsset,
   type ResourceType,
   type WatchfaceProject,
   type WatchfaceTheme,
@@ -96,6 +97,7 @@ export interface EditorState {
   replaceAssetLibrary: (assets: WatchfaceProject["assets"], folders: string[]) => void;
   syncAssetLibrary: (assets: WatchfaceProject["assets"], folders: string[]) => void;
   renameAsset: (path: string, newName: string) => "moved" | "same" | "missing" | "conflict";
+  updateAssetContent: (path: string, content: string) => boolean;
   removeAsset: (path: string) => boolean;
   addAssetFolder: (path: string) => boolean;
   removeAssetFolder: (path: string) => boolean;
@@ -762,6 +764,31 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       return update;
     });
     return result;
+  },
+
+  updateAssetContent: (path, content) => {
+    const normalized = path.replaceAll("\\", "/");
+    let updated = false;
+    set((state) => {
+      const existing = state.project.assets[normalized];
+      if (!existing) return state;
+      try {
+        URL.revokeObjectURL(existing.url);
+      } catch {}
+      const blob = new Blob([content], { type: existing.blob.type || "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const nextAsset: ProjectAsset = {
+        ...existing,
+        blob,
+        url,
+        lastModified: Date.now(),
+      };
+      updated = true;
+      return commit(state, (project) => {
+        project.assets[normalized] = nextAsset;
+      });
+    });
+    return updated;
   },
 
   removeAsset: (path) => {

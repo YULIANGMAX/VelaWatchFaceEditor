@@ -397,4 +397,45 @@ describe("主题复制", () => {
     expect(useEditorStore.getState().removeAsset("images/icon_new.png")).toBe(true);
     expect(useEditorStore.getState().selection).toEqual({ kind: "project" });
   });
+
+  it("updateAssetContent 可更新脚本与文本资源内容，并支持撤销重做", async () => {
+    const project = createBlankProject();
+    const initialCode = 'print("hello")';
+    project.assets["scripts/main.lua"] = {
+      path: "scripts/main.lua",
+      blob: new Blob([initialCode], { type: "text/plain" }),
+      url: "blob:mock-1",
+      lastModified: 1000,
+    };
+    useEditorStore.getState().loadProject(project, [], true);
+
+    const initialRevision = useEditorStore.getState().contentRevision;
+    const newCode = 'print("updated lua script")\nreturn true';
+
+    // 成功更新已有资产
+    const success = useEditorStore.getState().updateAssetContent("scripts/main.lua", newCode);
+    expect(success).toBe(true);
+
+    const updatedAsset = useEditorStore.getState().project.assets["scripts/main.lua"];
+    expect(updatedAsset).toBeDefined();
+    const text = await updatedAsset!.blob.text();
+    expect(text).toBe(newCode);
+    expect(useEditorStore.getState().contentRevision).toBeGreaterThan(initialRevision);
+
+    // 撤销测试
+    useEditorStore.getState().undo();
+    const undoneAsset = useEditorStore.getState().project.assets["scripts/main.lua"];
+    const undoneText = await undoneAsset!.blob.text();
+    expect(undoneText).toBe(initialCode);
+
+    // 重做测试
+    useEditorStore.getState().redo();
+    const redoneAsset = useEditorStore.getState().project.assets["scripts/main.lua"];
+    const redoneText = await redoneAsset!.blob.text();
+    expect(redoneText).toBe(newCode);
+
+    // 不存在的资产返回 false
+    expect(useEditorStore.getState().updateAssetContent("scripts/not_found.lua", "test")).toBe(false);
+  });
 });
+

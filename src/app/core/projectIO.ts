@@ -545,6 +545,17 @@ export async function deleteResourceFolder(
   await directory.removeEntry(name, { recursive: true });
 }
 
+export async function writeResourceTextFile(
+  projectDirectory: FileSystemDirectoryHandle,
+  path: string,
+  content: string,
+): Promise<void> {
+  const source = normalizePath(path);
+  const { directory, name } = await resourceParent(projectDirectory, source, true);
+  const handle = await directory.getFileHandle(name, { create: true });
+  await writeFile(handle, content);
+}
+
 export async function deleteResourceFile(
   projectDirectory: FileSystemDirectoryHandle,
   path: string,
