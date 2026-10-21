@@ -8,6 +8,7 @@ import {
   ChevronsDown,
   ChevronsUp,
   Copy,
+  Download,
   File,
   Folder,
   FolderInput,
@@ -36,7 +37,7 @@ import {
 } from "../core/projectIO";
 import { RESOURCE_DEFINITION_MAP } from "../editor/manifestEditorSchema";
 import { measureResource } from "../core/measure";
-import { getResourceName, isPreviewResource, isReservedAssetFolder, normalizePath, type ProjectAsset, type WatchfacePreviewContext, type WatchfaceProject, type WatchfaceResource } from "../core/model";
+import { getResourceName, isImageAsset, isPreviewResource, isReservedAssetFolder, normalizePath, type ProjectAsset, type WatchfacePreviewContext, type WatchfaceProject, type WatchfaceResource } from "../core/model";
 import { useEditorStore } from "../store/editorStore";
 import { ResourceRenderer } from "./ResourceRenderer";
 import { AddResourceDialog } from "./AddResourceDialog";
@@ -122,7 +123,7 @@ function initialProgress(paths: string[], assets: Record<string, ProjectAsset>):
 }
 
 function isImage(asset: ProjectAsset): boolean {
-  return asset.blob.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(asset.path);
+  return isImageAsset(asset);
 }
 
 
@@ -316,6 +317,23 @@ const AssetTreeFileRow = memo(function AssetTreeFileRow({
       {isImage(asset) ? <span className="asset-tree-thumb"><img src={asset.url} alt="" /></span> : <File size={16} />}
       <span className="asset-tree-file-label"><strong>{filename}</strong><small>{asset.path}</small></span>
       <div className="asset-file-actions">
+        {isImage(asset) ? (
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              const a = document.createElement("a");
+              a.href = asset.url;
+              const originalName = asset.path.split("/").at(-1) ?? "image";
+              a.download = originalName.replace(/\.[^.]+$/, "") + ".png";
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            }}
+            title="另存为 PNG"
+          >
+            <Download size={14} />
+          </button>
+        ) : null}
         <button onClick={(event) => { event.stopPropagation(); onRenameFile(asset.path); }} title="重命名文件"><Pencil size={14} /></button>
         <button className="is-danger" onClick={(event) => { event.stopPropagation(); onDeleteFile(asset.path); }} title="永久删除文件"><X size={14} /></button>
       </div>

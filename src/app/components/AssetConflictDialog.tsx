@@ -1,5 +1,5 @@
 import { FileImage, X } from "lucide-react";
-import type { ProjectAsset } from "../core/model";
+import { isImageAsset, type ProjectAsset } from "../core/model";
 import type { AssetImportCandidate } from "../core/projectIO";
 
 export interface AssetConflict {
@@ -10,7 +10,7 @@ export interface AssetConflict {
 }
 
 function isImage(asset: ProjectAsset): boolean {
-  return asset.blob.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(asset.path);
+  return isImageAsset(asset);
 }
 
 function modifiedTime(asset: ProjectAsset): string {

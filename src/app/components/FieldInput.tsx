@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState, type ReactNode
 import { createPortal } from "react-dom";
 import { ArrowUpRight, Calculator, ChevronDown, ChevronRight, File, Folder, RefreshCw, Search, X } from "lucide-react";
 import { RESOURCE_DEFINITION_MAP, type FieldDefinition } from "../editor/manifestEditorSchema";
-import { generateWatchfaceId, getDeviceProfile, isPreviewResource, normalizePath, refName, type Attributes, type WatchfaceProject, type WatchfaceResource } from "../core/model";
+import { generateWatchfaceId, getDeviceProfile, isImageAsset, isPreviewResource, normalizePath, refName, type Attributes, type WatchfaceProject, type WatchfaceResource } from "../core/model";
 import { getManifestAttributeAllowedValues } from "../device-definition";
 import { getDataSourceValidationError } from "../core/validation";
 import { DATA_SOURCE_LABELS } from "../device-definition/dataSourceLabels";
@@ -303,9 +303,12 @@ export function AssetPathSelect({ field, value, project, onChange, disabled = fa
     };
   }, [open]);
 
-  const isImagePath = (path: string) => /\.png$/i.test(path);
+  const isImageEntry = (entryPath: string) => {
+    const asset = project.assets[entryPath];
+    return asset ? isImageAsset(asset) : /\.(png|jpe?g|gif|webp|bmp)$/i.test(entryPath);
+  };
   const entries: AssetEntry[] = Object.keys(project.assets)
-    .filter((path) => field.assetType !== "image" || isImagePath(path))
+    .filter((path) => field.assetType !== "image" || isImageEntry(path))
     .map((path) => {
       const index = path.lastIndexOf("/");
       return {
@@ -361,7 +364,7 @@ export function AssetPathSelect({ field, value, project, onChange, disabled = fa
 
   const selected = entries.find((entry) => entry.path === value);
   const thumbOf = (entry: AssetEntry) => {
-    if (!isImagePath(entry.path)) {
+    if (!isImageEntry(entry.path)) {
       return <span className="asset-picker-thumb asset-picker-thumb-empty"><File size={13} /></span>;
     }
     const url = project.assets[entry.path]?.url;

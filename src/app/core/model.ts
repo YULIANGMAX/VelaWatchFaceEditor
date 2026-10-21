@@ -58,6 +58,17 @@ export interface ProjectAsset {
   width?: number;
   height?: number;
   imageMetadataLoaded?: boolean;
+  previewBlob?: Blob;
+}
+
+export function isImageAsset(asset: ProjectAsset): boolean {
+  if (asset.blob.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(asset.path)) {
+    return true;
+  }
+  if (/\.(rle|bin)$/i.test(asset.path) && Boolean(asset.width && asset.height)) {
+    return true;
+  }
+  return false;
 }
 
 export interface WatchfacePreviewContext {

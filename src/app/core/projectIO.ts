@@ -11,6 +11,7 @@ import {
 } from "./model";
 import { parseDescription, serializeDescription } from "./description";
 import { parseManifest, serializeManifest } from "./xml";
+import { createLvglPreview, decodeLvglImage } from "./lvglImageDecoder";
 
 export const PROJECT_PREVIEW_DIRECTORY = "_preview";
 export const PROJECT_RESOURCES_DIRECTORY = "resources";
@@ -33,16 +34,45 @@ function objectUrl(blob: Blob): string {
   return URL.createObjectURL(blob);
 }
 
-async function imageMetadata(blob: Blob, path: string): Promise<Pick<ProjectAsset, "width" | "height" | "imageMetadataLoaded">> {
-  if (!/\.png$/i.test(path) || typeof createImageBitmap !== "function") return {};
-  try {
-    const bitmap = await createImageBitmap(blob);
-    const metadata = { width: bitmap.width, height: bitmap.height, imageMetadataLoaded: true };
-    bitmap.close();
-    return metadata;
-  } catch {
+async function imageMetadata(
+  blob: Blob,
+  path: string,
+): Promise<Pick<ProjectAsset, "width" | "height" | "imageMetadataLoaded" | "previewBlob"> & { previewUrl?: string }> {
+  if (/\.png$/i.test(path) && typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(blob);
+      const metadata = { width: bitmap.width, height: bitmap.height, imageMetadataLoaded: true };
+      bitmap.close();
+      return metadata;
+    } catch {
+      return { imageMetadataLoaded: true };
+    }
+  }
+
+  if (/\.(rle|bin)$/i.test(path)) {
+    try {
+      const buffer = await blob.arrayBuffer();
+      const decoded = decodeLvglImage(new Uint8Array(buffer));
+      if (decoded) {
+        const preview = await createLvglPreview(decoded);
+        if (preview) {
+          return {
+            width: decoded.width,
+            height: decoded.height,
+            imageMetadataLoaded: true,
+            previewUrl: preview.url,
+            previewBlob: preview.blob,
+          };
+        }
+        return { width: decoded.width, height: decoded.height, imageMetadataLoaded: true };
+      }
+    } catch {
+      // 容错处理
+    }
     return { imageMetadataLoaded: true };
   }
+
+  return {};
 }
 
 export async function runConcurrent<T>(
@@ -153,17 +183,18 @@ export async function readResourceLibrary(
   let count = 0;
   for (const entry of resourceEntries) {
     const current = currentAssets[entry.path];
-    if (current && current.blob.size === entry.file.size && current.lastModified === entry.file.lastModified && (!/\.png$/i.test(entry.path) || current.imageMetadataLoaded)) {
+    if (current && current.blob.size === entry.file.size && current.lastModified === entry.file.lastModified && (!/\.(png|rle|bin)$/i.test(entry.path) || current.imageMetadataLoaded)) {
       assets[entry.path] = current;
     } else {
       const buffer = await entry.file.arrayBuffer();
       const memoryBlob = new Blob([buffer], { type: entry.file.type || "image/png" });
+      const meta = await imageMetadata(memoryBlob, entry.path);
       assets[entry.path] = {
         path: entry.path,
         blob: memoryBlob,
-        url: objectUrl(memoryBlob),
+        url: meta.previewUrl ?? objectUrl(memoryBlob),
         lastModified: entry.file.lastModified,
-        ...await imageMetadata(memoryBlob, entry.path),
+        ...meta,
       };
     }
     count++;
@@ -274,7 +305,7 @@ export async function importProjectFromEntries(
     assets[path] = {
       path,
       blob: memoryBlob,
-      url: objectUrl(memoryBlob),
+      url: meta.previewUrl ?? objectUrl(memoryBlob),
       lastModified: entry.file.lastModified,
       ...meta,
     };

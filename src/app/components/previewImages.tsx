@@ -150,9 +150,10 @@ export async function generateThemePreviews(project: WatchfaceProject): Promise<
   const blobToDataUrlMap = new Map<string, string>();
   await Promise.all(
     Object.values(project.assets).map(async (asset) => {
-      if (asset.blob && asset.url) {
+      const targetBlob = asset.previewBlob ?? asset.blob;
+      if (targetBlob && asset.url) {
         try {
-          const dataUrl = await blobToDataUrl(asset.blob);
+          const dataUrl = await blobToDataUrl(targetBlob);
           blobToDataUrlMap.set(asset.url, dataUrl);
         } catch {
           // 容错处理
