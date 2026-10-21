@@ -36,6 +36,8 @@ export type Selection =
 
 export type GridMode = "none" | "corner" | "center";
 
+export type PreviewBackground = "light-checker" | "dark-checker" | "black" | "white";
+
 export interface EditorState {
   project: WatchfaceProject;
   selectedThemeId: string;
@@ -57,6 +59,8 @@ export interface EditorState {
   previewColor: string;
   previewTemperatureUnit: "celsius" | "fahrenheit";
   previewMetrics: Record<string, number | string>;
+  previewBackground: PreviewBackground;
+  setPreviewBackground: (bg: PreviewBackground) => void;
   loadProject: (project: WatchfaceProject, diagnostics?: Diagnostic[], saved?: boolean) => void;
   resetProject: (device?: DeviceType) => void;
   markSaved: () => void;
@@ -335,6 +339,15 @@ function selectionState(state: EditorState, selection: Selection): Partial<Edito
   };
 }
 
+const INITIAL_PREVIEW_BG: PreviewBackground =
+  typeof window !== "undefined" && typeof localStorage !== "undefined"
+    ? ((localStorage.getItem("vela_preview_bg") as PreviewBackground) || "light-checker")
+    : "light-checker";
+
+if (typeof document !== "undefined") {
+  document.documentElement.setAttribute("data-preview-bg", INITIAL_PREVIEW_BG);
+}
+
 const initialProject = createBlankProject();
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -358,6 +371,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   previewColor: "",
   previewTemperatureUnit: "celsius",
   previewMetrics: {},
+  previewBackground: INITIAL_PREVIEW_BG,
 
   loadProject: (project, diagnostics = [], saved = true) =>
     set((state) => {
@@ -443,6 +457,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   })),
   setPreviewColor: (previewColor) => set({ previewColor }),
   setPreviewTemperatureUnit: (previewTemperatureUnit) => set({ previewTemperatureUnit }),
+  setPreviewBackground: (previewBackground) => {
+    try {
+      localStorage.setItem("vela_preview_bg", previewBackground);
+    } catch {}
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-preview-bg", previewBackground);
+    }
+    set({ previewBackground });
+  },
   setPreviewMetric: (source, value) => set((state) => {
     const previewMetrics = { ...state.previewMetrics };
     if (value === undefined || value === "") delete previewMetrics[source];

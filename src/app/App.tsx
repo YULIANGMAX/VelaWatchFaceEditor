@@ -14,6 +14,7 @@ import {
 import { CanvasStage } from "./components/CanvasStage";
 import { Inspector } from "./components/Inspector";
 import { Sidebar } from "./components/Sidebar";
+import { PreviewBackgroundDropdown } from "./components/PreviewBackgroundDropdown";
 import {
   createBlankProject,
   createId,
@@ -755,6 +756,8 @@ export function App() {
 
         {/* 右区：调试工具与项目诊断 */}
         <div className="topbar-right">
+          <PreviewBackgroundDropdown />
+
           <button
             type="button"
             className={`topbar-metrics-btn${metricsOpen || overrideCount > 0 ? " is-active" : ""}`}

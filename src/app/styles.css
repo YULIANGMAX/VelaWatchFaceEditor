@@ -44,9 +44,50 @@
   --teal: #287272;
   --teal-soft: #dbe8e6;
   --warning: #a76713;
-  --danger: #be3b35;
   --radius: 8px;
   --shadow: 0 14px 38px rgb(22 26 31 / 12%);
+
+  /* 预览底色系统变量（默认浅色棋盘格） */
+  --preview-base-color: #f5f6f8;
+  --preview-pattern-color: #dedfe2;
+  --preview-pattern-image:
+    linear-gradient(45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(-45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #dedfe2 75%),
+    linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+}
+
+:root[data-preview-bg="light-checker"],
+:root:not([data-preview-bg]) {
+  --preview-base-color: #f5f6f8;
+  --preview-pattern-color: #dedfe2;
+  --preview-pattern-image:
+    linear-gradient(45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(-45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #dedfe2 75%),
+    linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+}
+
+:root[data-preview-bg="dark-checker"] {
+  --preview-base-color: #4a4f56;
+  --preview-pattern-color: #5e646d;
+  --preview-pattern-image:
+    linear-gradient(45deg, #5e646d 25%, transparent 25%),
+    linear-gradient(-45deg, #5e646d 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #5e646d 75%),
+    linear-gradient(-45deg, transparent 75%, #5e646d 75%);
+}
+
+:root[data-preview-bg="black"] {
+  --preview-base-color: #000000;
+  --preview-pattern-color: transparent;
+  --preview-pattern-image: none;
+}
+
+:root[data-preview-bg="white"] {
+  --preview-base-color: #ffffff;
+  --preview-pattern-color: transparent;
+  --preview-pattern-image: none;
 }
 
 * {
@@ -713,6 +754,164 @@ button.directory-gate-button:disabled {
   align-items: center;
   gap: 8px;
   margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* 顶栏预览底色切换下拉菜单 */
+.preview-bg-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.preview-bg-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 10px;
+  background: rgba(26, 36, 46, 0.75);
+  border: 1px solid rgba(75, 95, 110, 0.5);
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.16s ease;
+}
+
+.preview-bg-dropdown-btn:hover {
+  background: rgba(36, 50, 64, 0.9);
+  border-color: rgba(94, 219, 210, 0.65);
+  color: #f1f5f9;
+}
+
+.preview-bg-dropdown-btn.is-open {
+  background: rgba(28, 44, 56, 0.95);
+  border-color: #5edbd2;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(94, 219, 210, 0.3);
+}
+
+.preview-bg-indicator {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.preview-bg-indicator.is-light-checker,
+.preview-bg-option-swatch.is-light-checker {
+  background-color: #f5f6f8;
+  background-image:
+    linear-gradient(45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(-45deg, #dedfe2 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #dedfe2 75%),
+    linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+}
+
+.preview-bg-indicator.is-dark-checker,
+.preview-bg-option-swatch.is-dark-checker {
+  background-color: #4a4f56;
+  background-image:
+    linear-gradient(45deg, #5e646d 25%, transparent 25%),
+    linear-gradient(-45deg, #5e646d 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #5e646d 75%),
+    linear-gradient(-45deg, transparent 75%, #5e646d 75%);
+  background-size: 6px 6px;
+  background-position: 0 0, 0 3px, 3px -3px, -3px 0;
+}
+
+.preview-bg-indicator.is-black,
+.preview-bg-option-swatch.is-black {
+  background-color: #000000;
+}
+
+.preview-bg-indicator.is-white,
+.preview-bg-option-swatch.is-white {
+  background-color: #ffffff;
+}
+
+.preview-bg-btn-label {
+  white-space: nowrap;
+}
+
+.preview-bg-chevron {
+  opacity: 0.7;
+  transition: transform 0.16s ease;
+}
+
+.preview-bg-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.preview-bg-menu {
+  position: fixed;
+  min-width: 145px;
+  padding: 4px;
+  background: #1c222a;
+  border: 1px solid #36424e;
+  border-radius: 7px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: contextMenuPop 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.preview-bg-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s ease;
+}
+
+.preview-bg-option:hover {
+  background: #2a3440;
+  color: #ffffff;
+}
+
+.preview-bg-option.is-selected {
+  background: rgba(43, 163, 151, 0.18);
+  color: #5edbd2;
+  font-weight: 600;
+}
+
+.preview-bg-option-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 1px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.preview-bg-option-label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.preview-bg-check {
+  color: #5edbd2;
   flex-shrink: 0;
 }
 
@@ -1423,8 +1622,8 @@ button.directory-gate-button:disabled {
   align-items: flex-start;
   justify-content: flex-start;
   overflow: hidden;
-  background-color: #f5f6f8;
-  background-image: linear-gradient(45deg, #dedfe2 25%, transparent 25%), linear-gradient(-45deg, #dedfe2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dedfe2 75%), linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-position: 0 0, 0 5px, 5px -5px, -5px 0;
   background-size: 10px 10px;
   border: 1px solid #cfd3d8;
@@ -1723,8 +1922,8 @@ button.directory-gate-button:disabled {
 .asset-tree-thumb,
 .asset-conflict-preview img {
   object-fit: contain;
-  background-color: #f5f6f8;
-  background-image: linear-gradient(45deg, #dedfe2 25%, transparent 25%), linear-gradient(-45deg, #dedfe2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dedfe2 75%), linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-position: 0 0, 0 5px, 5px -5px, -5px 0;
   background-size: 10px 10px;
 }
@@ -2906,8 +3105,8 @@ button.directory-gate-button:disabled {
   padding: 4px;
   place-items: center;
   overflow: hidden;
-  background-color: #f5f6f8;
-  background-image: linear-gradient(45deg, #dedfe2 25%, transparent 25%), linear-gradient(-45deg, #dedfe2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dedfe2 75%), linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-position: 0 0, 0 4px, 4px -4px, -4px 0;
   background-size: 8px 8px;
   border: 1px solid #cfd3d8;
@@ -3621,8 +3820,8 @@ button.directory-gate-button:disabled {
   overflow: hidden;
   box-sizing: border-box;
   color: #647076;
-  background-color: #f5f6f8;
-  background-image: linear-gradient(45deg, #dedfe2 25%, transparent 25%), linear-gradient(-45deg, #dedfe2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dedfe2 75%), linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-position: 0 0, 0 5px, 5px -5px, -5px 0;
   background-size: 10px 10px;
   border: 1px solid #cfd3d8;
@@ -3806,8 +4005,8 @@ button.directory-gate-button:disabled {
   overflow: hidden;
   border: 1px solid #cfd3d8;
   border-radius: 3px;
-  background-color: #f5f6f8;
-  background-image: linear-gradient(45deg, #dedfe2 25%, transparent 25%), linear-gradient(-45deg, #dedfe2 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #dedfe2 75%), linear-gradient(-45deg, transparent 75%, #dedfe2 75%);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-position: 0 0, 0 5px, 5px -5px, -5px 0;
   background-size: 10px 10px;
 }
@@ -4529,9 +4728,8 @@ button.directory-gate-button:disabled {
   flex-shrink: 0;
   width: 30px;
   height: 30px;
-  background-color: #f0eee8;
-  background-image: linear-gradient(45deg, #e3e0d8 25%, transparent 25%, transparent 75%, #e3e0d8 75%, #e3e0d8),
-    linear-gradient(45deg, #e3e0d8 25%, transparent 25%, transparent 75%, #e3e0d8 75%, #e3e0d8);
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
   background-size: 8px 8px;
   background-position: 0 0, 4px 4px;
   border: 1px solid #d5d1c7;
