@@ -12,6 +12,10 @@ interface DiagnosticsDrawerProps {
   onClose: () => void;
 }
 
+const DIAGNOSTICS_DRAWER_WIDTH_KEY = "vela_diagnostics_drawer_width";
+const DEFAULT_DRAWER_WIDTH = 420;
+const MIN_DRAWER_WIDTH = 340;
+
 export function DiagnosticsDrawer({
   open,
   diagnostics,
@@ -21,6 +25,43 @@ export function DiagnosticsDrawer({
   const navigateTo = useEditorStore((state) => state.navigateTo);
   const setSelectedTheme = useEditorStore((state) => state.setSelectedTheme);
   const [severityFilter, setSeverityFilter] = useState<Diagnostic["severity"] | null>(null);
+  const [width, setWidth] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_DRAWER_WIDTH;
+    try {
+      const saved = localStorage.getItem(DIAGNOSTICS_DRAWER_WIDTH_KEY);
+      const parsed = saved ? Number.parseInt(saved, 10) : Number.NaN;
+      return Number.isFinite(parsed) && parsed >= MIN_DRAWER_WIDTH ? parsed : DEFAULT_DRAWER_WIDTH;
+    } catch {
+      return DEFAULT_DRAWER_WIDTH;
+    }
+  });
+  const [isResizing, setIsResizing] = useState(false);
+
+  const startResize = (event: React.PointerEvent) => {
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = width;
+    setIsResizing(true);
+    const onMove = (moveEvent: PointerEvent) => {
+      const maxWidth = Math.max(MIN_DRAWER_WIDTH, window.innerWidth - 80);
+      const nextWidth = Math.min(maxWidth, Math.max(MIN_DRAWER_WIDTH, startWidth + (startX - moveEvent.clientX)));
+      setWidth(nextWidth);
+    };
+    const onUp = (upEvent: PointerEvent) => {
+      setIsResizing(false);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      const maxWidth = Math.max(MIN_DRAWER_WIDTH, window.innerWidth - 80);
+      const finalWidth = Math.min(maxWidth, Math.max(MIN_DRAWER_WIDTH, startWidth + (startX - upEvent.clientX)));
+      try {
+        localStorage.setItem(DIAGNOSTICS_DRAWER_WIDTH_KEY, String(finalWidth));
+      } catch {
+        // ignore
+      }
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
 
   const sortedDiagnostics = useMemo(() => sortDiagnostics(diagnostics), [diagnostics]);
 
@@ -51,7 +92,15 @@ export function DiagnosticsDrawer({
   };
 
   return (
-    <section className="diagnostics-drawer">
+    <section
+      className={`diagnostics-drawer${isResizing ? " is-resizing" : ""}`}
+      style={{ width: `${width}px` }}
+    >
+      <div
+        className="diagnostics-drawer-resizer"
+        onPointerDown={startResize}
+        title="拖动调整诊断窗口宽度"
+      />
       <header className="modal-header diagnostics-drawer-header">
         <h2>项目诊断</h2>
         <button className="icon-button" onClick={onClose} aria-label="关闭诊断抽屉">
