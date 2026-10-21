@@ -208,7 +208,8 @@
               "DataItemArcProgressBar",
               "DataItemLineProgressBar",
               "Slot",
-              "Widget"
+              "Widget",
+              "File"
             ]
           },
           {
@@ -1465,7 +1466,8 @@
               "DataItemArcProgressBar",
               "DataItemLineProgressBar",
               "Slot",
-              "Widget"
+              "Widget",
+              "File"
             ]
           },
           {
