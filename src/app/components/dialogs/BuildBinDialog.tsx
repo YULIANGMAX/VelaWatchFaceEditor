@@ -186,7 +186,7 @@ export function BuildBinDialog({
           </div>
         ) : null}
 
-        <footer className="xml-editor-actions">
+        <footer className="modal-actions">
           <button className="primary-button" disabled={working} onClick={onClose}>
             确定
           </button>

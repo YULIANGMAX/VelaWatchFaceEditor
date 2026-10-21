@@ -1,35 +1,42 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import {
+  AlertCircle,
   AlertTriangle,
   Check,
   Copy,
   FileCode,
+  FileCode2,
   FileText,
+  Info,
   Redo2,
   RotateCcw,
   Save,
   Undo2,
   X,
 } from "lucide-react";
+import type { Diagnostic } from "../../core/model";
 import { dialogManager } from "../../core/dialog";
+import {
+  CodeMirrorEditor,
+  type CodeMirrorEditorHandle,
+  type CodeLanguage,
+  type CodeEditorStats,
+} from "../editor/CodeMirrorEditor";
 
 export interface CodeEditorDialogProps {
   open: boolean;
   assetPath: string;
   initialContent: string;
+  diagnostics?: Diagnostic[];
   onSave: (newContent: string) => Promise<boolean | void> | boolean | void;
   onClose: () => void;
-}
-
-interface HistoryStep {
-  text: string;
-  cursor: number;
 }
 
 export const CodeEditorDialog = memo(function CodeEditorDialog({
   open,
   assetPath,
   initialContent,
+  diagnostics,
   onSave,
   onClose,
 }: CodeEditorDialogProps) {
@@ -40,133 +47,51 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
   const [isSaving, setIsSaving] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [cursorPos, setCursorPos] = useState({ line: 1, col: 1 });
+  const [stats, setStats] = useState<CodeEditorStats>({
+    line: 1,
+    col: 1,
+    totalLines: initialContent.split("\n").length,
+    charCount: initialContent.length,
+  });
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const gutterRef = useRef<HTMLDivElement | null>(null);
+  const editorRef = useRef<CodeMirrorEditorHandle | null>(null);
 
-  // 完备的历史撤销/重做栈（支持百步级撤销）
-  const historyRef = useRef<HistoryStep[]>([{ text: initialContent, cursor: 0 }]);
-  const historyIndexRef = useRef<number>(0);
-  const lastTypeTimeRef = useRef<number>(0);
-  const isNewGroupRef = useRef<boolean>(true);
-
-  // 打开时重置所有状态与历史
+  // 打开时重置所有状态
   useEffect(() => {
     if (open) {
       setContent(initialContent);
       setLastSavedContent(initialContent);
-      historyRef.current = [{ text: initialContent, cursor: 0 }];
-      historyIndexRef.current = 0;
-      lastTypeTimeRef.current = 0;
-      isNewGroupRef.current = true;
       setCanUndo(false);
       setCanRedo(false);
       setSaveFeedback(null);
       setCopied(false);
       setShowCloseConfirm(false);
-      setCursorPos({ line: 1, col: 1 });
+      setStats({
+        line: 1,
+        col: 1,
+        totalLines: initialContent.split("\n").length,
+        charCount: initialContent.length,
+      });
     }
   }, [open, initialContent]);
 
   const isDirty = content !== lastSavedContent;
   const isLua = assetPath.toLowerCase().endsWith(".lua");
+  const isXml = assetPath.toLowerCase().endsWith(".xml");
+  const language: CodeLanguage = isLua ? "lua" : isXml ? "xml" : "text";
   const filename = assetPath.split("/").at(-1) ?? assetPath;
-  const lines = content.split("\n");
+  const isRootFile = assetPath === "manifest.xml" || !assetPath.includes("/");
+  const displayPath = isRootFile ? assetPath : `resources/${assetPath}`;
 
-  // 直接提交独立历史步（用于 Tab 缩进、还原、清空等操作）
-  const pushDirectStep = useCallback((val: string, newCursor: number) => {
-    let history = historyRef.current.slice(0, historyIndexRef.current + 1);
-    history.push({ text: val, cursor: newCursor });
-    if (history.length > 200) {
-      history.shift();
-    }
-    historyRef.current = history;
-    historyIndexRef.current = history.length - 1;
-    setContent(val);
-    isNewGroupRef.current = true;
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(false);
-    requestAnimationFrame(() => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        textarea.selectionStart = textarea.selectionEnd = newCursor;
-        textarea.focus();
-      }
-    });
-  }, []);
-
-  // 文本输入变动：按词/标点/停顿精细划分为连续多步历史
-  const handleContentChange = (newVal: string) => {
-    const textarea = textareaRef.current;
-    const cursor = textarea ? textarea.selectionStart : newVal.length;
-    const prev = content;
-    setContent(newVal);
-
-    const now = Date.now();
-    const timeDiff = now - lastTypeTimeRef.current;
-    lastTypeTimeRef.current = now;
-
-    const charBeforeCursor = newVal.slice(Math.max(0, cursor - 1), cursor);
-    const isDelimiter = /[\s\n\t,;(){}[\]=+\-*/<>:"]/.test(charBeforeCursor);
-    const isBigJump = Math.abs(newVal.length - prev.length) > 1;
-    const shouldStartNewGroup = isNewGroupRef.current || isBigJump || isDelimiter || timeDiff > 600;
-
-    let history = historyRef.current.slice(0, historyIndexRef.current + 1);
-
-    if (shouldStartNewGroup) {
-      history.push({ text: newVal, cursor });
-      if (history.length > 200) {
-        history.shift();
-      }
-      historyRef.current = history;
-      historyIndexRef.current = history.length - 1;
-      isNewGroupRef.current = isDelimiter;
-    } else {
-      history[historyIndexRef.current] = { text: newVal, cursor };
-      historyRef.current = history;
-      isNewGroupRef.current = false;
-    }
-
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(false);
-  };
-
-  // 撤销（支持多步向前追溯）
+  // 撤销
   const handleUndo = useCallback(() => {
-    if (historyIndexRef.current <= 0) return;
-    historyIndexRef.current -= 1;
-    const step = historyRef.current[historyIndexRef.current];
-    setContent(step.text);
-    isNewGroupRef.current = true;
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
-    requestAnimationFrame(() => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        textarea.selectionStart = textarea.selectionEnd = step.cursor;
-        textarea.focus();
-      }
-    });
+    editorRef.current?.undo();
   }, []);
 
-  // 重做（支持多步向后恢复）
+  // 重做
   const handleRedo = useCallback(() => {
-    if (historyIndexRef.current >= historyRef.current.length - 1) return;
-    historyIndexRef.current += 1;
-    const step = historyRef.current[historyIndexRef.current];
-    setContent(step.text);
-    isNewGroupRef.current = true;
-    setCanUndo(historyIndexRef.current > 0);
-    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
-    requestAnimationFrame(() => {
-      const textarea = textareaRef.current;
-      if (textarea) {
-        textarea.selectionStart = textarea.selectionEnd = step.cursor;
-        textarea.focus();
-      }
-    });
+    editorRef.current?.redo();
   }, []);
 
   // 保存操作
@@ -183,8 +108,8 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
     } catch (error) {
       setSaveFeedback(null);
       void dialogManager.alert({
-        title: "保存文件失败",
-        message: error instanceof Error ? error.message : "无法写入文件",
+        title: "保存失败",
+        message: error instanceof Error ? error.message : "无法保存内容，请检查语法",
         type: "error",
       });
       return false;
@@ -196,8 +121,9 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
   // 还原修改
   const handleReset = useCallback(() => {
     if (!isDirty) return;
-    pushDirectStep(lastSavedContent, 0);
-  }, [isDirty, lastSavedContent, pushDirectStep]);
+    setContent(lastSavedContent);
+    editorRef.current?.focus();
+  }, [isDirty, lastSavedContent]);
 
   // 复制代码
   const handleCopy = useCallback(async () => {
@@ -217,25 +143,6 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
     }
   }, [content]);
 
-  // 更新光标行列位置
-  const updateCursorPos = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const textBefore = textarea.value.substring(0, textarea.selectionStart);
-    const splitLines = textBefore.split("\n");
-    setCursorPos({
-      line: splitLines.length,
-      col: splitLines[splitLines.length - 1].length + 1,
-    });
-  }, []);
-
-  // 滚动行号同步
-  const handleScroll = useCallback((e: React.UIEvent<HTMLTextAreaElement>) => {
-    if (gutterRef.current) {
-      gutterRef.current.scrollTop = e.currentTarget.scrollTop;
-    }
-  }, []);
-
   // 请求关闭弹窗（有未保存修改时拦截提示）
   const handleRequestClose = useCallback(() => {
     if (isDirty) {
@@ -245,50 +152,7 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
     }
   }, [isDirty, onClose]);
 
-  // 快捷键监听
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Ctrl+S / Cmd+S: 保存
-      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
-        e.preventDefault();
-        void handleSave();
-        return;
-      }
-
-      // Ctrl+Z / Cmd+Z: 撤销 / 重做
-      if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
-        e.preventDefault();
-        if (e.shiftKey) {
-          handleRedo();
-        } else {
-          handleUndo();
-        }
-        return;
-      }
-
-      // Ctrl+Y / Cmd+Y: 重做
-      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || e.key === "Y")) {
-        e.preventDefault();
-        handleRedo();
-        return;
-      }
-
-      // Tab 键: 缩进 2 空格
-      if (e.key === "Tab") {
-        e.preventDefault();
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const val = textarea.value;
-        const nextVal = val.substring(0, start) + "  " + val.substring(end);
-        pushDirectStep(nextVal, start + 2);
-      }
-    },
-    [handleRedo, handleSave, handleUndo, pushDirectStep],
-  );
-
-  // Esc 快捷键关闭处理
+  // 全局快捷键监听（Esc 拦截）
   useEffect(() => {
     if (!open) return;
     const handleWindowKeyDown = (e: KeyboardEvent) => {
@@ -320,12 +184,14 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
           <div className="code-editor-header-title">
             {isLua ? (
               <FileCode size={18} className="code-editor-file-icon is-lua" />
+            ) : isXml ? (
+              <FileCode2 size={18} className="code-editor-file-icon" style={{ color: "#38bdf8" }} />
             ) : (
               <FileText size={18} className="code-editor-file-icon" />
             )}
             <h2>编辑 {filename}</h2>
-            <span className="code-editor-path-pill" title={`resources/${assetPath}`}>
-              resources/{assetPath}
+            <span className="code-editor-path-pill" title={displayPath}>
+              {displayPath}
             </span>
             {isDirty ? <span className="code-editor-dirty-badge">● 未保存</span> : null}
           </div>
@@ -339,7 +205,7 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
           </button>
         </header>
 
-        {/* 2. 集中顶部操作工具栏：保存、多步撤销、多步重做、还原、复制代码 */}
+        {/* 2. 集中顶部操作工具栏：保存、撤销、重做、还原、复制代码 */}
         <div className="code-editor-toolbar">
           <div className="code-editor-tool-group">
             <button
@@ -399,56 +265,82 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
           </div>
 
           <div className="code-editor-toolbar-hint">
-            <span>Tab: 缩进 2 空格 · Ctrl+S: 保存 · Ctrl+Z: 撤销 · Ctrl+Y: 重做</span>
+            <span>Tab: 缩进 · Ctrl+S: 保存 · Ctrl+Z: 撤销 · Ctrl+Y: 重做 · Ctrl+F: 查找</span>
           </div>
         </div>
 
-        {/* 3. 编辑区：无截断完整行号栏与等宽输入区 */}
+        {/* 3. CodeMirror 6 编辑区 */}
         <div className="code-editor-workspace">
-          <div className="code-editor-gutter" ref={gutterRef} aria-hidden="true">
-            {lines.map((_, idx) => (
-              <span key={idx} className="code-editor-line-num">
-                {idx + 1}
-              </span>
-            ))}
-          </div>
-          <textarea
-            ref={textareaRef}
-            className="code-editor-textarea"
+          <CodeMirrorEditor
+            ref={editorRef}
             value={content}
-            onChange={(e) => handleContentChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onScroll={handleScroll}
-            onSelect={updateCursorPos}
-            onClick={updateCursorPos}
-            onKeyUp={updateCursorPos}
-            spellCheck={false}
-            autoCapitalize="off"
-            autoComplete="off"
-            autoCorrect="off"
-            placeholder="脚本内容为空"
-            aria-label="代码编辑区"
+            onChange={setContent}
+            language={language}
+            onCursorChange={setStats}
+            onHistoryChange={({ canUndo: u, canRedo: r }) => {
+              setCanUndo(u);
+              setCanRedo(r);
+            }}
+            onSaveShortcut={() => void handleSave()}
+            autoFocus
           />
+
+          {/* 校验错误诊断面板（如果存在） */}
+          {diagnostics && diagnostics.length > 0 ? (
+            <div className="code-editor-diagnostics">
+              <div className="code-editor-diagnostics-header">
+                <AlertCircle size={14} color="#ef4444" />
+                <span>XML 校验未通过（共 {diagnostics.length} 处诊断问题）</span>
+              </div>
+              <div className="code-editor-diagnostics-list">
+                {diagnostics.map((entry) => (
+                  <div key={entry.id} className={`code-diag-item severity-${entry.severity}`}>
+                    <div className="code-diag-icon">
+                      {entry.severity === "error" ? (
+                        <AlertCircle size={14} color="#ef4444" />
+                      ) : entry.severity === "warning" ? (
+                        <AlertTriangle size={14} color="#f59e0b" />
+                      ) : (
+                        <Info size={14} color="#3b82f6" />
+                      )}
+                    </div>
+                    <code className="code-diag-loc" title={entry.location}>
+                      {entry.location}
+                    </code>
+                    <span className="code-diag-msg">{entry.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
-        {/* 4. 底部状态栏（不包含按钮，仅展示光标行列与保存状态） */}
+        {/* 4. 底部状态栏 */}
         <div className="code-editor-statusbar">
           <div className="code-editor-status-left">
-            <span>行 {cursorPos.line}, 列 {cursorPos.col}</span>
+            <span>行 {stats.line}, 列 {stats.col}</span>
             <span className="code-editor-status-dot">·</span>
-            <span>共 {lines.length} 行</span>
+            <span>共 {stats.totalLines} 行</span>
             <span className="code-editor-status-dot">·</span>
-            <span>{content.length} 字符</span>
+            <span>{stats.charCount} 字符</span>
+            <span className="code-editor-status-dot">·</span>
+            <span style={{ fontWeight: 600, color: isLua ? "#10b981" : isXml ? "#38bdf8" : "#94a3b8" }}>
+              {language.toUpperCase()}
+            </span>
             <span className="code-editor-status-dot">·</span>
             <span>UTF-8</span>
           </div>
           <div className="code-editor-status-right">
             {saveFeedback ? (
               <span className="code-editor-status-feedback">{saveFeedback}</span>
+            ) : diagnostics && diagnostics.length > 0 ? (
+              <span className="code-editor-status-dirty" style={{ color: "#ef4444" }}>
+                ⚠️ 存在 {diagnostics.length} 处解析/校验问题
+              </span>
             ) : isDirty ? (
               <span className="code-editor-status-dirty">● 未保存修改 (Ctrl+S 保存)</span>
             ) : (
-              <span className="code-editor-status-clean">已同步到磁盘</span>
+              <span className="code-editor-status-clean">已同步到项目</span>
             )}
           </div>
         </div>
@@ -476,7 +368,7 @@ export const CodeEditorDialog = memo(function CodeEditorDialog({
                 <div className="code-editor-confirm-title-group">
                   <h3>未保存的代码修改</h3>
                   <p>
-                    文件 <code>resources/{assetPath}</code> 存在尚未保存的修改。<br />
+                    文件 <code>{displayPath}</code> 存在尚未保存的修改。<br />
                     关闭窗口前是否需要保存这些修改？
                   </p>
                 </div>

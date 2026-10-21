@@ -5198,13 +5198,12 @@ button.directory-gate-button:disabled {
 .build-dialog .build-progress { background: #f8f7f3; }
 .build-dialog .build-result { background: #edf7f3; }
 .build-dialog .boundary-errors { margin: 0; border-inline: 0; }
-.build-dialog .command-warning { margin: 0; border-inline: 0; border-radius: 0; }
-.build-dialog .xml-editor-actions {
+.build-dialog .modal-actions {
   justify-content: flex-end;
   padding: 12px 20px;
   background: #f8f7f3;
 }
-.build-dialog .xml-editor-actions .primary-button { min-width: 72px; }
+.build-dialog .modal-actions .primary-button { min-width: 72px; }
 .command-warning { display: flex; gap: 8px; margin: 16px 20px 0; padding: 10px; color: #7a5619; font-size: 11px; background: #fff5df; border: 1px solid #e8d09f; border-radius: 4px; }
 .build-progress,
 .build-result { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; margin: 10px 20px; padding: 14px; border: 1px solid #d9d5cc; border-radius: 5px; background: #f8f7f3; }
@@ -5380,82 +5379,7 @@ button.directory-gate-button:disabled {
   to { transform: rotate(360deg); }
 }
 
-.xml-editor-dialog {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  width: min(980px, 94vw);
-  height: min(760px, 88vh);
-}
 
-.xml-editor-body {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  min-height: 0;
-  padding: 14px;
-  gap: 10px;
-}
-
-.xml-editor-body textarea {
-  width: 100%;
-  min-height: 0;
-  padding: 14px 16px;
-  color: #d8e7e5;
-  font: 15px/1.55 Consolas, monospace;
-  tab-size: 4;
-  resize: none;
-  background: #182126;
-  border: 1px solid #38484d;
-  border-radius: 5px;
-  outline: none;
-}
-
-.xml-editor-body textarea:focus {
-  border-color: #5e9f9a;
-  box-shadow: 0 0 0 2px rgb(40 114 114 / 18%);
-}
-
-.xml-editor-diagnostics {
-  max-height: 150px;
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid #dedad2;
-  border-radius: 4px;
-}
-
-.xml-editor-diagnostics > div {
-  display: grid;
-  grid-template-columns: minmax(150px, 0.35fr) 1fr;
-  gap: 12px;
-  padding: 8px 10px;
-  color: var(--danger);
-  font-size: 13px;
-  border-bottom: 1px solid #ece8e0;
-}
-
-.xml-editor-diagnostics > div:last-child {
-  border-bottom: 0;
-}
-
-.xml-editor-diagnostics code {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.xml-editor-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 14px 14px;
-  border-top: 1px solid var(--line);
-}
-
-.xml-editor-actions > span {
-  margin-right: auto;
-  color: #7f878a;
-  font-size: 13px;
-}
 
 .diagnostics-drawer {
   position: fixed;
@@ -6592,10 +6516,14 @@ button.directory-gate-button:disabled {
 }
 
 .asset-code-preview-container {
+  height: 380px;
+  max-height: 380px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid #1e293b;
   background: #0f172a;
+  display: flex;
+  flex-direction: column;
 }
 
 .asset-code-loading,
@@ -6607,72 +6535,13 @@ button.directory-gate-button:disabled {
   font-family: Consolas, monospace;
 }
 
-.asset-code-viewer {
-  display: flex;
-  max-height: 380px;
-  overflow: auto;
-  font-family: Consolas, 'Fira Code', Monaco, 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 20px;
-  color: #e2e8f0;
-  background: #0f172a;
-}
-
-.asset-code-gutter {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 10px 8px;
-  background: #090d16;
-  border-right: 1px solid #1e293b;
-  user-select: none;
-  text-align: right;
-  color: #475569;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  min-width: 34px;
-  box-sizing: border-box;
-}
-
-.asset-code-line-num {
-  display: block;
-  height: 20px;
-  line-height: 20px;
-}
-
-.asset-code-body {
-  margin: 0;
-  padding: 10px 14px;
-  flex: 1;
-  min-width: max-content;
-  overflow: visible;
-  white-space: pre;
-  color: #cbd5e1;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
-
-.asset-code-body code {
-  display: block;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  background: transparent !important;
-  padding: 0 !important;
-}
-
 /* ==========================================================================
    通用大窗口代码编辑器 (CodeEditorDialog)
    ========================================================================== */
 
 .code-editor-dialog {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   position: relative;
   width: min(1120px, 94vw);
   height: min(840px, 90vh);
@@ -6683,6 +6552,7 @@ button.directory-gate-button:disabled {
 }
 
 .code-editor-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6739,6 +6609,7 @@ button.directory-gate-button:disabled {
 
 /* 顶部独立工具栏 */
 .code-editor-toolbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -6814,62 +6685,148 @@ button.directory-gate-button:disabled {
   font-family: Consolas, 'Fira Code', Monaco, monospace;
 }
 
-/* 编辑区与行号联动 */
+/* 编辑区与 CodeMirror 滚动容器配置 */
 .code-editor-workspace {
   display: flex;
+  flex-direction: column;
+  flex: 1;
   min-height: 0;
   height: 100%;
+  width: 100%;
   background: #0f172a;
+  overflow: hidden;
+  position: relative;
+}
+
+.cm-editor-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
   overflow: hidden;
 }
 
-.code-editor-gutter {
+.cm-editor-container .cm-theme,
+.cm-editor-container .cm-theme-dark {
   display: flex;
   flex-direction: column;
-  padding: 12px 8px;
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+  width: 100%;
+}
+
+.cm-editor-container .cm-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+  width: 100%;
+}
+
+.cm-editor-container .cm-scroller {
+  flex: 1;
+  min-height: 0;
+  height: 100% !important;
+  overflow: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #090d16;
+}
+
+.cm-editor-container .cm-scroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.cm-editor-container .cm-scroller::-webkit-scrollbar-track {
   background: #090d16;
-  border-right: 1px solid #1e293b;
-  user-select: none;
-  text-align: right;
-  color: #475569;
-  font-size: 12px;
-  font-family: Consolas, 'Fira Code', Monaco, monospace;
-  min-width: 42px;
-  overflow-y: hidden;
-  box-sizing: border-box;
+}
+
+.cm-editor-container .cm-scroller::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 5px;
+  border: 2px solid #090d16;
+}
+
+.cm-editor-container .cm-scroller::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* 诊断错误列表（支持 XML 校验与语法提示） */
+.code-editor-diagnostics {
+  max-height: 160px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #181111;
+  border-top: 1px solid #7f1d1d;
   flex-shrink: 0;
 }
 
-.code-editor-line-num {
-  height: 21px;
-  line-height: 21px;
+.code-editor-diagnostics-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #450a0a;
+  color: #fca5a5;
+  font-size: 11.5px;
+  font-weight: 600;
 }
 
-.code-editor-textarea {
+.code-editor-diagnostics-list {
+  overflow-y: auto;
   flex: 1;
-  min-width: 0;
-  height: 100%;
-  padding: 12px 14px;
-  margin: 0;
-  box-sizing: border-box;
-  background: transparent;
-  color: #e2e8f0;
-  border: none;
-  outline: none;
-  resize: none;
-  font-family: Consolas, 'Fira Code', Monaco, 'Courier New', monospace;
-  font-size: 12.5px;
-  line-height: 21px;
-  tab-size: 2;
-  -moz-tab-size: 2;
-  white-space: pre;
-  word-wrap: normal;
-  overflow: auto;
 }
 
-.code-editor-textarea::selection {
-  background: #1e3a8a;
-  color: #ffffff;
+.code-diag-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #fca5a5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.code-diag-item:last-child {
+  border-bottom: 0;
+}
+
+.code-diag-item.severity-warning {
+  color: #fde68a;
+}
+
+.code-diag-item.severity-info {
+  color: #93c5fd;
+}
+
+.code-diag-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.code-diag-loc {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.code-diag-msg {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 状态栏 */

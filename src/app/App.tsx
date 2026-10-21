@@ -77,9 +77,7 @@ const BoundaryDialog = lazy(() =>
 const BuildBinDialog = lazy(() =>
   import("./components/dialogs/BuildBinDialog").then((module) => ({ default: module.BuildBinDialog }))
 );
-const XmlEditorDialog = lazy(() =>
-  import("./components/dialogs/XmlEditorDialog").then((module) => ({ default: module.XmlEditorDialog }))
-);
+import { CodeEditorDialog } from "./components/dialogs/CodeEditorDialog";
 
 export function App() {
   const project = useEditorStore((state) => state.project);
@@ -548,17 +546,6 @@ export function App() {
     setXmlEditorOpen(true);
   };
 
-  const applyXml = () => {
-    const result = parseManifest(xmlDraft, project.device, project.assets);
-    if (result.blocked || !result.project) {
-      setXmlDiagnostics(result.diagnostics);
-      return;
-    }
-    result.project.description = { ...project.description };
-    loadProject(result.project, result.diagnostics, false);
-    setXmlDiagnostics([]);
-    setXmlEditorOpen(false);
-  };
 
   const handleBuild = () => {
     if (errorCount > 0 || saving || !clean) return;
@@ -820,13 +807,27 @@ export function App() {
           <BuildBinDialog open={buildOpen} directory={projectDirectory} diagnostics={diagnostics} clean={clean} saving={saving} onClose={() => setBuildOpen(false)} />
         )}
         {xmlEditorOpen && (
-          <XmlEditorDialog
+          <CodeEditorDialog
             open={xmlEditorOpen}
-            value={xmlDraft}
+            assetPath="manifest.xml"
+            initialContent={xmlDraft}
             diagnostics={xmlDiagnostics}
-            onChange={setXmlDraft}
-            onApply={applyXml}
-            onClose={() => setXmlEditorOpen(false)}
+            onSave={(newContent) => {
+              const result = parseManifest(newContent, project.device, project.assets);
+              if (result.blocked || !result.project) {
+                setXmlDiagnostics(result.diagnostics);
+                const firstError = result.diagnostics.find((d) => d.severity === "error")?.message || "XML 解析失败，请检查语法";
+                throw new Error(firstError);
+              }
+              result.project.description = { ...project.description };
+              loadProject(result.project, result.diagnostics, false);
+              setXmlDraft(newContent);
+              setXmlDiagnostics([]);
+            }}
+            onClose={() => {
+              setXmlEditorOpen(false);
+              setXmlDiagnostics([]);
+            }}
           />
         )}
       </Suspense>

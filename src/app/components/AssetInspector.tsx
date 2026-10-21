@@ -31,6 +31,7 @@ import { dialogManager } from "../core/dialog";
 import { deleteResourceFile, writeResourceTextFile } from "../core/projectIO";
 import { InspectorCard, InspectorHeader, InspectorNavigation } from "./Inspector";
 import { CodeEditorDialog } from "./dialogs/CodeEditorDialog";
+import { CodeMirrorEditor, type CodeLanguage } from "./editor/CodeMirrorEditor";
 
 export type AssetReference =
   | { kind: "watchface"; fieldLabel: string; selection: Selection }
@@ -278,6 +279,9 @@ export const AssetInspector = memo(function AssetInspector({
 
   const isImg = asset ? isImageAsset(asset) : false;
   const isText = asset ? isTextAsset(assetPath, asset.blob) : false;
+  const isLua = assetPath.toLowerCase().endsWith(".lua");
+  const isXml = assetPath.toLowerCase().endsWith(".xml");
+  const codeLanguage: CodeLanguage = isLua ? "lua" : isXml ? "xml" : "text";
   const filename = assetPath.split("/").at(-1) ?? "";
   const typeBadge = useMemo(() => getAssetTypeBadge(assetPath, isImg, isText), [assetPath, isImg, isText]);
 
@@ -552,16 +556,11 @@ export const AssetInspector = memo(function AssetInspector({
               {loadingContent ? (
                 <div className="asset-code-loading">正在读取脚本内容...</div>
               ) : textContent !== null ? (
-                <div className="asset-code-viewer">
-                  <div className="asset-code-gutter" aria-hidden="true">
-                    {textLines.map((_, idx) => (
-                      <span key={idx} className="asset-code-line-num">{idx + 1}</span>
-                    ))}
-                  </div>
-                  <pre className="asset-code-body">
-                    <code>{normalizedText}</code>
-                  </pre>
-                </div>
+                <CodeMirrorEditor
+                  value={normalizedText}
+                  language={codeLanguage}
+                  readOnly
+                />
               ) : (
                 <div className="asset-code-empty">未能读取文本内容</div>
               )}
