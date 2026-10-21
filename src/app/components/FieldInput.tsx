@@ -141,8 +141,10 @@ export function ComboboxInput({ id, value, options, placeholder, disabled = fals
     : resolvedOptions;
   const displayOptions = (filtered.length > 0 || !query) ? filtered : resolvedOptions;
 
+  const showClear = open && Boolean(value) && !disabled;
+
   return (
-    <div className={`combobox${open ? " is-open" : ""}`} ref={rootRef}>
+    <div className={`combobox${open ? " is-open" : ""}${showClear ? " has-clear" : ""}`} ref={rootRef}>
       <input
         id={id}
         ref={inputRef}
@@ -154,6 +156,23 @@ export function ComboboxInput({ id, value, options, placeholder, disabled = fals
         onFocus={() => setOpen(true)}
         onChange={(event) => onChange(event.target.value)}
       />
+      {showClear ? (
+        <button
+          type="button"
+          className="combobox-clear"
+          tabIndex={-1}
+          aria-label="清除内容"
+          title="清除已填内容"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onChange("");
+            inputRef.current?.focus();
+          }}
+        >
+          <X size={13} />
+        </button>
+      ) : null}
       <button
         type="button"
         className="combobox-toggle"

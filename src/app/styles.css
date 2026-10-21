@@ -3681,13 +3681,37 @@ button.directory-gate-button:disabled {
   cursor: not-allowed;
 }
 
+.combobox.has-clear .combobox-input {
+  padding-right: 44px;
+}
+
+.combobox-clear {
+  position: absolute;
+  top: 0;
+  right: 22px;
+  bottom: 0;
+  display: grid;
+  width: 20px;
+  place-items: center;
+  color: #8b9295;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.combobox-clear:hover {
+  color: #c53030;
+}
+
 .combobox-toggle {
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   display: grid;
-  width: 24px;
+  width: 22px;
   place-items: center;
   color: #6a7175;
   background: transparent;
