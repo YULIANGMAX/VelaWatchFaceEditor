@@ -211,17 +211,33 @@ function AssetTreeBranch({
           event.dataTransfer.effectAllowed = "move";
           event.dataTransfer.setData("application/x-watchface-folder", node.path);
         }}
+        onDoubleClick={() => onToggleFolder(node.path)}
         title={isReserved ? "系统保留文件夹（自动生成，不可重命名或删除）" : node.path ? "拖到其他文件夹可移动" : "可接收文件或文件夹"}
       >
-        <button className="asset-folder-toggle" onClick={() => onToggleFolder(node.path)} title={isCollapsed ? "展开" : "折叠"}>
+        <button
+          className="asset-folder-toggle"
+          onClick={() => onToggleFolder(node.path)}
+          onDoubleClick={(event) => event.stopPropagation()}
+          title={isCollapsed ? "展开" : "折叠"}
+        >
           {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
         </button>
-        <button className="asset-folder-main" onClick={() => onSelectFolder(node.path)}>
+        <button
+          className="asset-folder-main"
+          onClick={() => onSelectFolder(node.path)}
+          onDoubleClick={(event) => {
+            event.stopPropagation();
+            onToggleFolder(node.path);
+          }}
+        >
           <Folder size={16} />
           <strong>{node.name}</strong>
           <small>{node.folders.size + node.files.length}</small>
         </button>
-        <div className="asset-folder-actions">
+        <div
+          className="asset-folder-actions"
+          onDoubleClick={(event) => event.stopPropagation()}
+        >
           <button onClick={() => onImportFiles(node.path)} title="导入文件"><FolderInput size={14} /></button>
           <button onClick={() => onCreateFolder(node.path)} title="新建子文件夹"><Plus size={14} /></button>
           {node.path && !isReserved ? <button onClick={() => onRenameFolder(node.path)} title="重命名文件夹"><Pencil size={14} /></button> : null}

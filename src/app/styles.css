@@ -1795,6 +1795,7 @@ button.directory-gate-button:disabled {
   color: #596267;
   border: 1px solid transparent;
   border-radius: 4px;
+  user-select: none;
 }
 
 .asset-folder-row:hover {
