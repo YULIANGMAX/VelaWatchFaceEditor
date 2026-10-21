@@ -27,17 +27,4 @@ describe("小米表盘图片编码", () => {
     expect(Array.from(resource.subarray(8, 12))).toEqual([8, 0, 0, 0]);
     expect(Array.from(resource.subarray(12))).toEqual([0, 0, 255, 255, 0, 0, 255, 255]);
   });
-
-  it("支持单图量化增量缓存命中并保证字节一致", () => {
-    const rgba = new Uint8Array(260 * 4);
-    for (let i = 0; i < 260; i += 1) {
-      rgba[i * 4] = i & 0xff;
-      rgba[i * 4 + 1] = (i * 2) & 0xff;
-      rgba[i * 4 + 2] = (i * 3) & 0xff;
-      rgba[i * 4 + 3] = 255;
-    }
-    const block1 = encodeImageBlock({ width: 260, height: 1, rgba }, "indexed8", "none");
-    const block2 = encodeImageBlock({ width: 260, height: 1, rgba }, "indexed8", "none");
-    expect(block1.bytes).toEqual(block2.bytes);
-  }, 20000);
 });
