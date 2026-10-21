@@ -898,7 +898,7 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
           return "文件夹名称不能包含 \\ / : * ? \" < > |，也不能为 . 或 ..";
         }
         if (!parentFolder && isReservedAssetFolder(trimmed)) {
-          return "不能使用系统保留文件夹名称 (_preview 或 _widget)";
+          return "不能使用系统保留文件夹名称 (_preview、_widget 或 _lua)";
         }
         const path = parentFolder ? `${parentFolder}/${trimmed}` : trimmed;
         if ((project.assetFolders ?? []).includes(path) || project.assets[path]) {
@@ -961,7 +961,7 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
           return "文件夹名称不能包含 \\ / : * ? \" < > |，也不能为 . 或 ..";
         }
         if (parts.length === 1 && isReservedAssetFolder(trimmed)) {
-          return "不能使用系统保留文件夹名称 (_preview 或 _widget)";
+          return "不能使用系统保留文件夹名称 (_preview、_widget 或 _lua)";
         }
         return null;
       },

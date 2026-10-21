@@ -298,7 +298,7 @@ export function createBlankProject(device: DeviceType = "O66"): WatchfaceProject
   };
 }
 
-export const RESERVED_ASSET_FOLDERS = ["_preview", "_widget"] as const;
+export const RESERVED_ASSET_FOLDERS = ["_preview", "_widget", "_lua"] as const;
 export type ReservedAssetFolder = (typeof RESERVED_ASSET_FOLDERS)[number];
 
 export function isReservedAssetFolder(path: string): boolean {
