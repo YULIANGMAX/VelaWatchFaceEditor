@@ -62,10 +62,13 @@ export interface ProjectAsset {
 }
 
 export function isImageAsset(asset: ProjectAsset): boolean {
-  if (asset.blob.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(asset.path)) {
+  if (/\.(png|jpe?g|gif|webp|bmp)$/i.test(asset.path)) {
     return true;
   }
   if (/\.(rle|bin)$/i.test(asset.path) && Boolean(asset.width && asset.height)) {
+    return true;
+  }
+  if (asset.blob.type.startsWith("image/") && !/\.(lua|json|xml|txt|md|bin|rle)$/i.test(asset.path)) {
     return true;
   }
   return false;

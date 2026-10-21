@@ -364,4 +364,37 @@ describe("主题复制", () => {
     expect(state.project.themes[0]!.attrs.recolorTable).toBeUndefined();
     expect(state.project.themes[1]!.attrs.recolorTable).toBeUndefined();
   });
+
+  it("支持选中 asset 并同步前进/后退导航", () => {
+    useEditorStore.getState().resetProject();
+    useEditorStore.getState().navigateTo({ kind: "project" });
+    useEditorStore.getState().navigateTo({ kind: "asset", path: "images/icon.png" });
+
+    expect(useEditorStore.getState().selection).toEqual({ kind: "asset", path: "images/icon.png" });
+    useEditorStore.getState().navigateBack();
+    expect(useEditorStore.getState().selection).toEqual({ kind: "project" });
+    useEditorStore.getState().navigateForward();
+    expect(useEditorStore.getState().selection).toEqual({ kind: "asset", path: "images/icon.png" });
+  });
+
+  it("重命名或删除 asset 时自动更新选中状态", () => {
+    useEditorStore.getState().resetProject();
+    const project = createBlankProject();
+    project.assets = {
+      "images/icon.png": { path: "images/icon.png", url: "blob:icon", blob: new Blob() },
+    };
+    useEditorStore.getState().loadProject(project, [], true);
+
+    // 选中 asset
+    useEditorStore.getState().setSelection({ kind: "asset", path: "images/icon.png" });
+    expect(useEditorStore.getState().selection).toEqual({ kind: "asset", path: "images/icon.png" });
+
+    // 重命名 asset
+    expect(useEditorStore.getState().renameAsset("images/icon.png", "icon_new.png")).toBe("moved");
+    expect(useEditorStore.getState().selection).toEqual({ kind: "asset", path: "images/icon_new.png" });
+
+    // 删除 asset
+    expect(useEditorStore.getState().removeAsset("images/icon_new.png")).toBe(true);
+    expect(useEditorStore.getState().selection).toEqual({ kind: "project" });
+  });
 });

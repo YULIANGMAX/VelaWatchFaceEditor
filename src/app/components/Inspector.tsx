@@ -6,6 +6,7 @@ import {
   getDeviceProfile,
   getResourceName,
   getThemePreviewUrl,
+  normalizePath,
   refName,
   watchfaceDisplayName,
   type Attributes,
@@ -40,6 +41,7 @@ import { setDragGhost } from "../core/dragGhost";
 import { dialogManager } from "../core/dialog";
 import { AppIcon } from "./AppIcon";
 import { findResourceReferences, type ResourceReference } from "../editor/resourceReferences";
+import { AssetInspector } from "./AssetInspector";
 
 function MiniThemePreview({ project, theme }: { project: WatchfaceProject; theme: WatchfaceTheme }) {
   const width = project.canvas.width;
@@ -256,6 +258,7 @@ interface InspectorHeaderProps {
   namePlaceholder?: string;
   editTitle?: string;
   dimensions?: string | null;
+  dimensionsUnit?: string | null;
   className?: string;
 }
 
@@ -267,6 +270,7 @@ export function InspectorHeader({
   namePlaceholder = "未命名",
   editTitle = "编辑名称",
   dimensions,
+  dimensionsUnit,
   className = "",
 }: InspectorHeaderProps) {
   const [editing, setEditing] = useState(false);
@@ -323,8 +327,11 @@ export function InspectorHeader({
         </div>
         {dimensions ? (
           <div className="resource-badges-row">
-            <span className="resource-dimension-badge" title={`尺寸：${dimensions} 像素`}>
-              {dimensions} px
+            <span
+              className="resource-dimension-badge"
+              title={dimensionsUnit === "" ? `大小：${dimensions}` : `尺寸：${dimensions} ${dimensionsUnit ?? "像素"}`}
+            >
+              {dimensions}{dimensionsUnit === undefined ? " px" : dimensionsUnit ? ` ${dimensionsUnit}` : ""}
             </span>
           </div>
         ) : null}
@@ -333,7 +340,7 @@ export function InspectorHeader({
   );
 }
 
-interface InspectorCardProps {
+export interface InspectorCardProps {
   title: string;
   icon: ReactNode;
   badge?: ReactNode;
@@ -343,7 +350,7 @@ interface InspectorCardProps {
   children: ReactNode;
 }
 
-function InspectorCard({
+export function InspectorCard({
   title,
   icon,
   badge,
@@ -871,6 +878,7 @@ const ChildItemCard = memo(function ChildItemCard({
   onDrop,
   onNavigateToResource,
 }: ChildItemCardProps) {
+  const navigateTo = useEditorStore((state) => state.navigateTo);
   const rowClassName = [
     "child-card-row",
     isDragging ? "is-dragging" : "",
@@ -898,11 +906,14 @@ const ChildItemCard = memo(function ChildItemCard({
       }
     : undefined;
 
-  const targetRef = (xyFields ? child.attrs[xyFields.ref.key] : singleField?.kind === "reference" ? child.attrs[singleField.key] : child.attrs.ref) || "";
+  const singleFieldValue = singleField ? (child.attrs[singleField.key] ?? "") : "";
+  const targetRef = (xyFields ? child.attrs[xyFields.ref.key] : singleField?.kind === "reference" ? singleFieldValue : child.attrs.ref) || "";
   const targetResourceName = refName(targetRef);
   const targetResource = targetResourceName
     ? project.resources.find((entry: WatchfaceResource) => entry.attrs.name === targetResourceName)
     : undefined;
+  const targetAssetPath = singleField?.kind === "asset" && singleFieldValue ? normalizePath(singleFieldValue) : "";
+  const targetAsset = targetAssetPath ? project.assets[targetAssetPath] : undefined;
 
   const previewLabel = singleField ? (child.attrs[singleField.key] || `${childTag} #${index + 1}`)
     : translationFields ? `${child.attrs.language || "zh_CN"}: ${child.attrs.str || ""}`
@@ -914,7 +925,26 @@ const ChildItemCard = memo(function ChildItemCard({
     const disabled = !isDeviceResourceEditable(project.device, resourceType)
       || !isDeviceAttributeEditable(project.device, `${resourceType}/${childTag}`, field.key);
     if (field.kind === "asset") {
-      return <AssetPathSelect field={field} value={value} project={project} disabled={disabled} onChange={set} />;
+      if (singleField) {
+        return <AssetPathSelect field={field} value={value} project={project} disabled={disabled} onChange={set} />;
+      }
+      const normalizedPath = normalizePath(value);
+      const targetAssetItem = value ? project.assets[normalizedPath] : undefined;
+      return (
+        <div className="reference-field-wrap">
+          <AssetPathSelect field={field} value={value} project={project} disabled={disabled} onChange={set} />
+          {targetAssetItem ? (
+            <button
+              type="button"
+              className="child-jump-btn"
+              onClick={() => navigateTo({ kind: "asset", path: normalizedPath })}
+              title={`跳转到文件 resources/${normalizedPath}`}
+            >
+              <ArrowUpRight size={14} />
+            </button>
+          ) : null}
+        </div>
+      );
     }
     if (field.kind === "reference") {
       const resources = project.resources.filter((entry: WatchfaceResource) => !field.referenceTypes || field.referenceTypes.includes(entry.type));
@@ -979,6 +1009,15 @@ const ChildItemCard = memo(function ChildItemCard({
                 className="child-jump-btn"
                 onClick={() => onNavigateToResource(targetResource.id)}
                 title={`跳转到引用的资源 @${targetResource.attrs.name}（${RESOURCE_DEFINITION_MAP[targetResource.type]?.label || targetResource.type}）`}
+              >
+                <ArrowUpRight size={14} />
+              </button>
+            ) : targetAsset ? (
+              <button
+                type="button"
+                className="child-jump-btn"
+                onClick={() => navigateTo({ kind: "asset", path: targetAssetPath })}
+                title={`跳转到文件 resources/${targetAssetPath}`}
               >
                 <ArrowUpRight size={14} />
               </button>
@@ -1091,7 +1130,7 @@ function ResourceReferences({ resource }: { resource: WatchfaceResource }) {
   );
 }
 
-function InspectorNavigation() {
+export function InspectorNavigation() {
   const selection = useEditorStore((state) => state.selection);
   const navigationBack = useEditorStore((state) => state.navigationBack);
   const navigationForward = useEditorStore((state) => state.navigationForward);
@@ -1113,6 +1152,9 @@ function InspectorNavigation() {
   } else if (selection.kind === "resource") {
     icon = <Box size={15} />;
     title = "资源详情";
+  } else if (selection.kind === "asset") {
+    icon = <FileText size={15} />;
+    title = "文件详情";
   }
 
   return (
@@ -1145,7 +1187,11 @@ function InspectorNavigation() {
   );
 }
 
-export function Inspector() {
+export interface InspectorProps {
+  projectDirectory?: FileSystemDirectoryHandle | null;
+}
+
+export function Inspector({ projectDirectory }: InspectorProps = {}) {
   const project = useEditorStore((state) => state.project);
   const selection = useEditorStore((state) => state.selection);
   const navigationBack = useEditorStore((state) => state.navigationBack);
@@ -1177,6 +1223,16 @@ export function Inspector() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [navigateBack, navigateForward, navigationBack.length, navigationForward.length]);
+
+  if (selection.kind === "asset") {
+    return (
+      <AssetInspector
+        project={project}
+        assetPath={selection.path}
+        projectDirectory={projectDirectory}
+      />
+    );
+  }
 
   if (selection.kind === "project") {
     const firstTheme = project.themes[0];

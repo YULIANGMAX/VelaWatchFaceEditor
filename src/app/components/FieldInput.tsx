@@ -729,7 +729,23 @@ export function FieldInput({
     }
 
     if (field.kind === "asset") {
-      return <AssetPathSelect id={id} field={field} value={value} project={project} disabled={disabled} onChange={onChange} />;
+      const normalizedPath = normalizePath(value);
+      const targetAsset = value ? project.assets[normalizedPath] : undefined;
+      return (
+        <div className="reference-field-wrap">
+          <AssetPathSelect id={id} field={field} value={value} project={project} disabled={disabled} onChange={onChange} />
+          {targetAsset ? (
+            <button
+              type="button"
+              className="child-jump-btn"
+              onClick={() => navigateTo({ kind: "asset", path: normalizedPath })}
+              title={`跳转到文件 resources/${normalizedPath}`}
+            >
+              <ArrowUpRight size={14} />
+            </button>
+          ) : null}
+        </div>
+      );
     }
 
     const placeholderText = customPlaceholder || (field.required ? "必填" : "未设置");

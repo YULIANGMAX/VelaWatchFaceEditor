@@ -803,7 +803,7 @@ export function App() {
         <div className="sidebar-resizer" onPointerDown={startSidebarResize} title="拖动调整左侧栏宽度" />
         <CanvasStage />
         <div className="inspector-resizer" onPointerDown={startInspectorResize} title="拖动调整属性栏宽度" />
-        <Inspector />
+        <Inspector projectDirectory={projectDirectory} />
       </main>
 
       <Suspense fallback={null}>

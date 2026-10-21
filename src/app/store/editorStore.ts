@@ -32,7 +32,8 @@ export type Selection =
   | { kind: "project" }
   | { kind: "theme"; themeId: string }
   | { kind: "layout"; themeId: string; layoutId: string }
-  | { kind: "resource"; resourceId: string };
+  | { kind: "resource"; resourceId: string }
+  | { kind: "asset"; path: string };
 
 export type GridMode = "none" | "corner" | "center";
 
@@ -326,6 +327,8 @@ function isSameSelection(a: Selection, b: Selection): boolean {
       return a.themeId === (b as typeof a).themeId && a.layoutId === (b as typeof a).layoutId;
     case "resource":
       return a.resourceId === (b as typeof a).resourceId;
+    case "asset":
+      return a.path === (b as typeof a).path;
   }
 }
 
@@ -734,7 +737,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         return state;
       }
       result = "moved";
-      return commit(state, (project) => {
+      const update = commit(state, (project) => {
         const asset = project.assets[sourcePath];
         delete project.assets[sourcePath];
         project.assets[targetPath] = { ...asset, path: targetPath };
@@ -753,6 +756,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           for (const layout of theme.layouts) rewrite(layout.attrs);
         }
       });
+      if (state.selection.kind === "asset" && state.selection.path === sourcePath) {
+        return { ...update, selection: { kind: "asset", path: targetPath } as Selection };
+      }
+      return update;
     });
     return result;
   },
@@ -763,9 +770,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set((state) => {
       if (!state.project.assets[normalized]) return state;
       removed = true;
-      return commit(state, (project) => {
+      const update = commit(state, (project) => {
         delete project.assets[normalized];
       });
+      if (state.selection.kind === "asset" && state.selection.path === normalized) {
+        return { ...update, selection: { kind: "project" } as Selection };
+      }
+      return update;
     });
     return removed;
   },
@@ -814,11 +825,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         );
         return { ...project, assets, assetFolders };
       };
-      return {
+      const update = {
         project: removeFolder(state.project),
         history: state.history.map(removeFolder),
         future: state.future.map(removeFolder),
       };
+      if (state.selection.kind === "asset" && (state.selection.path === normalized || state.selection.path.startsWith(`${normalized}/`))) {
+        return { ...update, selection: { kind: "project" } as Selection };
+      }
+      return update;
     });
     return removed;
   },
@@ -845,7 +860,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         return state;
       }
       result = "moved";
-      return commit(state, (project) => {
+      const update = commit(state, (project) => {
         const movedAssets = [...changes].map(([sourcePath, targetPath]) => ({
           sourcePath,
           targetPath,
@@ -873,6 +888,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           for (const layout of theme.layouts) rewrite(layout.attrs);
         }
       });
+      if (state.selection.kind === "asset" && changes.has(state.selection.path)) {
+        return { ...update, selection: { kind: "asset", path: changes.get(state.selection.path)! } as Selection };
+      }
+      return update;
     });
     return result;
   },
@@ -905,7 +924,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         return state;
       }
       result = "moved";
-      return commit(state, (project) => {
+      const update = commit(state, (project) => {
         const pathChanges = new Map<string, string>();
         for (const oldPath of movingAssets) {
           const newPath = `${targetPath}${oldPath.slice(source.length)}`;
@@ -938,6 +957,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           for (const layout of theme.layouts) rewrite(layout.attrs);
         }
       });
+      if (state.selection.kind === "asset" && (state.selection.path === source || state.selection.path.startsWith(`${source}/`))) {
+        const newPath = `${targetPath}${state.selection.path.slice(source.length)}`;
+        return { ...update, selection: { kind: "asset", path: newPath } as Selection };
+      }
+      return update;
     });
     return result;
   },
@@ -969,7 +993,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         return state;
       }
       result = "moved";
-      return commit(state, (project) => {
+      const update = commit(state, (project) => {
         const pathChanges = new Map<string, string>();
         for (const oldPath of movingAssets) {
           const newPath = `${targetPath}${oldPath.slice(source.length)}`;
@@ -998,6 +1022,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           for (const layout of theme.layouts) rewrite(layout.attrs);
         }
       });
+      if (state.selection.kind === "asset" && (state.selection.path === source || state.selection.path.startsWith(`${source}/`))) {
+        const newPath = `${targetPath}${state.selection.path.slice(source.length)}`;
+        return { ...update, selection: { kind: "asset", path: newPath } as Selection };
+      }
+      return update;
     });
     return result;
   },

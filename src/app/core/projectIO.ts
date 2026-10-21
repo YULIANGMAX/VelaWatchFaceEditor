@@ -34,6 +34,23 @@ function objectUrl(blob: Blob): string {
   return URL.createObjectURL(blob);
 }
 
+export function guessMimeType(path: string, fallbackType?: string): string {
+  if (fallbackType && fallbackType !== "application/octet-stream") return fallbackType;
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".bmp")) return "image/bmp";
+  if (lower.endsWith(".svg")) return "image/svg+xml";
+  if (lower.endsWith(".lua") || lower.endsWith(".txt") || lower.endsWith(".md")) return "text/plain";
+  if (lower.endsWith(".json")) return "application/json";
+  if (lower.endsWith(".xml")) return "application/xml";
+  if (lower.endsWith(".rle")) return "application/x-lvgl-rle";
+  if (lower.endsWith(".bin")) return "application/octet-stream";
+  return fallbackType || "application/octet-stream";
+}
+
 async function imageMetadata(
   blob: Blob,
   path: string,
@@ -187,7 +204,7 @@ export async function readResourceLibrary(
       assets[entry.path] = current;
     } else {
       const buffer = await entry.file.arrayBuffer();
-      const memoryBlob = new Blob([buffer], { type: entry.file.type || "image/png" });
+      const memoryBlob = new Blob([buffer], { type: guessMimeType(entry.path, entry.file.type) });
       const meta = await imageMetadata(memoryBlob, entry.path);
       assets[entry.path] = {
         path: entry.path,
@@ -300,7 +317,7 @@ export async function importProjectFromEntries(
   await runConcurrent(resourceEntries, CONCURRENCY_LIMIT, async (entry) => {
     const path = entry.path.slice(PROJECT_RESOURCES_DIRECTORY.length + 1);
     const buffer = await entry.file.arrayBuffer();
-    const memoryBlob = new Blob([buffer], { type: entry.file.type || "image/png" });
+    const memoryBlob = new Blob([buffer], { type: guessMimeType(path, entry.file.type) });
     const meta = await imageMetadata(memoryBlob, path);
     assets[path] = {
       path,
@@ -398,11 +415,12 @@ export function createAssetImportCandidates(
     const sourcePath = normalizePath(file.name);
     const path = normalizePath(prefix ? `${prefix}/${sourcePath}` : sourcePath);
     if (!path || path === "manifest.xml") continue;
+    const mime = guessMimeType(path, file.type);
     candidates.push({
       sourcePath,
       asset: {
         path,
-        blob: file,
+        blob: file.type === mime ? file : new Blob([file], { type: mime }),
         url: objectUrl(file),
         lastModified: file.lastModified,
       },

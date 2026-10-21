@@ -4772,7 +4772,8 @@ button.directory-gate-button:disabled {
   width: 100%;
 }
 
-.reference-field-wrap select {
+.reference-field-wrap select,
+.reference-field-wrap .asset-picker {
   flex: 1;
   min-width: 0;
 }
@@ -6259,4 +6260,376 @@ button.directory-gate-button:disabled {
   bottom: 18%;
   width: 1px;
 }
+
+/* ==========================================================================
+   Asset Inspector (文件属性面板 - 完整版)
+   ========================================================================== */
+
+.asset-header-preview {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px !important;
+  box-sizing: border-box !important;
+}
+
+.asset-header-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 3px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.asset-type-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: Consolas, monospace;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.asset-preview-toggle-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.asset-preview-toggle-size:hover {
+  color: var(--teal, #1c7c77);
+  border-color: #89aaa6;
+}
+
+.asset-inspector-preview-box {
+  position: relative;
+  width: 100%;
+  min-height: 160px;
+  max-height: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--preview-base-color);
+  background-image: var(--preview-pattern-image);
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-size: 8px 8px;
+  border: 1px solid #d5d2ca;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.asset-inspector-preview-inner {
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  max-height: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.asset-inspector-preview-inner.is-actual-size {
+  overflow: auto;
+  display: block;
+}
+
+.asset-inspector-img {
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+  user-select: none;
+  pointer-events: none;
+  display: block;
+  margin: auto;
+}
+
+.asset-inspector-preview-inner.is-actual-size .asset-inspector-img {
+  max-width: none;
+  max-height: none;
+  margin: 0;
+}
+
+.asset-inspector-non-img-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 16px;
+  color: #64748b;
+  text-align: center;
+}
+
+.asset-file-icon {
+  color: #94a3b8;
+}
+
+.asset-file-desc {
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.asset-preview-overlay-info {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.asset-overlay-tag {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: Consolas, monospace;
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+
+/* 元数据表格 */
+.asset-meta-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.asset-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid #f1efe9;
+}
+
+.asset-meta-row:last-child {
+  border-bottom: none;
+}
+
+.asset-meta-label {
+  color: #6b7280;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.asset-meta-value {
+  color: #1f2937;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.asset-meta-value-with-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 75%;
+}
+
+.asset-meta-path-text {
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  color: #1f2937;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-mini-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+}
+
+.asset-mini-action-btn:hover {
+  color: var(--teal, #1c7c77);
+  border-color: #89aaa6;
+}
+
+/* 侧边栏文件树：非图像专用类型图标 */
+.asset-tree-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.asset-tree-type-icon.is-lua {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.asset-tree-type-icon.is-data {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+}
+
+.asset-tree-type-icon.is-bin {
+  color: #475569;
+  background: rgba(71, 85, 105, 0.14);
+}
+
+.asset-tree-type-icon.is-text {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.asset-tree-type-icon.is-generic {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.1);
+}
+
+/* 属性面板头部：非图像无棋盘图标徽章容器 */
+.asset-header-non-img-box {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  width: 54px !important;
+  height: 54px !important;
+  flex: 0 0 auto !important;
+  border-radius: 6px !important;
+  border: 1px solid !important;
+  box-sizing: border-box !important;
+}
+
+.asset-header-non-img-tag {
+  font-size: 9px;
+  font-weight: 800;
+  font-family: Consolas, monospace;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* 代码/文本只读预览器 */
+.asset-code-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.asset-code-copy-btn:hover {
+  color: var(--teal, #1c7c77);
+  border-color: #89aaa6;
+}
+
+.asset-code-preview-container {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #1e293b;
+  background: #0f172a;
+}
+
+.asset-code-loading,
+.asset-code-empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  font-family: Consolas, monospace;
+}
+
+.asset-code-viewer {
+  display: flex;
+  max-height: 320px;
+  overflow: auto;
+  font-family: Consolas, 'Fira Code', Monaco, monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.asset-code-gutter {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px;
+  background: #090d16;
+  border-right: 1px solid #1e293b;
+  user-select: none;
+  text-align: right;
+  color: #475569;
+  font-size: 11px;
+  min-width: 28px;
+}
+
+.asset-code-line-num {
+  line-height: 1.6;
+}
+
+.asset-code-body {
+  margin: 0;
+  padding: 10px 14px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: pre;
+  color: #cbd5e1;
+}
+
+.asset-code-body code {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+
+
 

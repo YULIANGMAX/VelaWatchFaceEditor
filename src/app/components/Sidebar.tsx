@@ -10,6 +10,10 @@ import {
   Copy,
   Download,
   File,
+  FileCode,
+  FileText,
+  Binary,
+  Braces,
   Folder,
   FolderInput,
   FolderTree,
@@ -283,6 +287,30 @@ interface AssetTreeFileRowProps {
   onDeleteFile: (path: string) => void;
 }
 
+function AssetTreeItemIcon({ asset }: { asset: ProjectAsset }) {
+  if (isImage(asset)) {
+    return (
+      <span className="asset-tree-thumb">
+        <img src={asset.url} alt="" />
+      </span>
+    );
+  }
+  const lower = asset.path.toLowerCase();
+  if (lower.endsWith(".lua")) {
+    return <span className="asset-tree-type-icon is-lua" title="Lua 脚本"><FileCode size={18} /></span>;
+  }
+  if (lower.endsWith(".json") || lower.endsWith(".xml")) {
+    return <span className="asset-tree-type-icon is-data" title="数据配置"><Braces size={18} /></span>;
+  }
+  if (lower.endsWith(".bin") || lower.endsWith(".dat")) {
+    return <span className="asset-tree-type-icon is-bin" title="二进制数据"><Binary size={18} /></span>;
+  }
+  if (lower.endsWith(".txt") || lower.endsWith(".md")) {
+    return <span className="asset-tree-type-icon is-text" title="文本文件"><FileText size={18} /></span>;
+  }
+  return <span className="asset-tree-type-icon is-generic"><File size={18} /></span>;
+}
+
 const AssetTreeFileRow = memo(function AssetTreeFileRow({
   asset,
   depth,
@@ -314,7 +342,7 @@ const AssetTreeFileRow = memo(function AssetTreeFileRow({
       onDragEnd={onEndFileDrag}
       title="单击选择；Ctrl 多选；Shift 连选；拖到文件夹可移动"
     >
-      {isImage(asset) ? <span className="asset-tree-thumb"><img src={asset.url} alt="" /></span> : <File size={16} />}
+      <AssetTreeItemIcon asset={asset} />
       <span className="asset-tree-file-label"><strong>{filename}</strong><small>{asset.path}</small></span>
       <div className="asset-file-actions">
         {isImage(asset) ? (
@@ -333,7 +361,23 @@ const AssetTreeFileRow = memo(function AssetTreeFileRow({
           >
             <Download size={14} />
           </button>
-        ) : null}
+        ) : (
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              const a = document.createElement("a");
+              a.href = asset.url;
+              const originalName = asset.path.split("/").at(-1) ?? "file";
+              a.download = originalName;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            }}
+            title="导出文件"
+          >
+            <Download size={14} />
+          </button>
+        )}
         <button onClick={(event) => { event.stopPropagation(); onRenameFile(asset.path); }} title="重命名文件"><Pencil size={14} /></button>
         <button className="is-danger" onClick={(event) => { event.stopPropagation(); onDeleteFile(asset.path); }} title="永久删除文件"><X size={14} /></button>
       </div>
@@ -535,6 +579,26 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
       return () => clearTimeout(timer);
     } else if (selection.kind === "theme") {
       setTab("layouts");
+    } else if (selection.kind === "asset") {
+      setTab("files");
+      setSelectedAssetPaths(new Set([selection.path]));
+      const parts = selection.path.split("/");
+      parts.pop();
+      if (parts.length > 0) {
+        setCollapsedFolders((current) => {
+          const next = new Set(current);
+          let currentPath = "";
+          for (const part of parts) {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            next.delete(currentPath);
+          }
+          return next;
+        });
+      }
+      const timer = setTimeout(() => {
+        document.querySelector(".asset-tree-file.is-selected")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [selection, project.resources]);
 
@@ -1173,6 +1237,7 @@ export function Sidebar({ projectDirectory }: { projectDirectory: FileSystemDire
   };
 
   const selectFile = (path: string, event: MouseEvent<HTMLDivElement>) => {
+    setSelection({ kind: "asset", path });
     setSelectedAssetPaths((current) => {
       if (event.shiftKey && selectionAnchorRef.current) {
         const anchorIndex = visibleAssetPaths.indexOf(selectionAnchorRef.current);
