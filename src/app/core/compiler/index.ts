@@ -194,8 +194,14 @@ function indexResources(
       }
       colorGroupIndex = colorGroups.indexOf(colorGroup!);
     } else {
-      index = nextIndex.get(type) ?? 0;
-      nextIndex.set(type, index + 1);
+      const explicitHexMatch = name ? /_([0-9a-fA-F]{7,8})$/.exec(name) : null;
+      if (explicitHexMatch) {
+        index = Number.parseInt(explicitHexMatch[1], 16) & 0xffff;
+        nextIndex.set(type, Math.max(nextIndex.get(type) ?? 0, index + 1));
+      } else {
+        index = nextIndex.get(type) ?? 0;
+        nextIndex.set(type, index + 1);
+      }
     }
 
     const payloadKey = variantIndex !== undefined
@@ -487,18 +493,25 @@ export async function compileWatchface(
       const reachable = reachableResources(
         theme.layouts.map((layout) => refName(layout.attrs.ref)), allByName,
       );
-      for (const entry of reachable) {
+      const themeHasScript = theme.layouts.some((layout) => {
+        const target = byName.get(refName(layout.attrs.ref));
+        return target && target.type === 5;
+      });
+      const themeResources = [...reachable];
+      if (themeHasScript) {
+        for (const fileEntry of indexed.filter((entry) => entry.type === 5)) {
+          if (!themeResources.includes(fileEntry)) {
+            themeResources.push(fileEntry);
+          }
+        }
+      }
+      for (const entry of themeResources) {
         const key = entry.payloadKey;
         const encoded = encodedResources.get(key);
         if (!encoded) throw new Error(`尚未实现可达资源 ${entry.resource.attrs.name}（${entry.resource.type}）`);
         addPayload(key, encoded);
         const flags = entry.colorGroupIndex !== undefined ? (entry.colorGroupIndex << 3) : 0;
         descriptors[entry.type].push({ id: entry.index, type: entry.type, flags, payloadKey: key });
-        if (entry.type === 5) {
-          const duplicateKey = `${key}:face:${faceIndex}:args`;
-          addPayload(duplicateKey, encoded.slice());
-          descriptors[entry.type].push({ id: entry.index, type: entry.type, flags, payloadKey: duplicateKey });
-        }
       }
       for (const table of descriptors) table.sort((left, right) => left.id - right.id || (left.flags ?? 0) - (right.flags ?? 0));
       const preview = theme.attrs.preview ? byName.get(refName(theme.attrs.preview)) : undefined;
@@ -580,7 +593,9 @@ export async function compileWatchface(
       || indexed.some((entry) => entry.type === 8)
       || normalThemeCount > 1;
     const hasAod = faces.some((face) => face.aod);
-    const combinationFlags = options.device.binary.header.combinationFlagsBase
+    const hasScript = indexed.some((entry) => entry.type === 5);
+    const flagsBase = hasScript ? 0x40 : options.device.binary.header.combinationFlagsBase;
+    const combinationFlags = flagsBase
       | (hasColors ? 1 : 0)
       | (isEditable ? 2 : 0)
       | (hasAod ? 4 : 0);
