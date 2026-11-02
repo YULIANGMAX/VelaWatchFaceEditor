@@ -252,13 +252,24 @@ interface ResourceReferenceSelectProps {
   project: WatchfaceProject;
   resources: WatchfaceResource[];
   disabled?: boolean;
+  allowPreviewResources?: boolean;
   onChange: (value: string) => void;
 }
 
 /** 资源属性与组合子项共用的引用选择器。 */
-export function ResourceReferenceSelect({ id, value, project, resources, disabled = false, onChange }: ResourceReferenceSelectProps) {
+export function ResourceReferenceSelect({
+  id,
+  value,
+  project,
+  resources,
+  disabled = false,
+  allowPreviewResources = false,
+  onChange,
+}: ResourceReferenceSelectProps) {
   const getOptions = useCallback((): ComboboxOption[] => {
-    const validResources = resources.filter((resource) => !isPreviewResource(resource));
+    const validResources = allowPreviewResources
+      ? resources
+      : resources.filter((resource) => !isPreviewResource(resource));
     const options: ComboboxOption[] = validResources.map((resource) => ({
       value: `@${resource.attrs.name}`,
       label: `@${resource.attrs.name}`,
@@ -269,7 +280,7 @@ export function ResourceReferenceSelect({ id, value, project, resources, disable
       options.unshift({ value, label: value, detail: "引用无效" });
     }
     return options;
-  }, [project, resources, value]);
+  }, [allowPreviewResources, project, resources, value]);
 
   return <ComboboxInput id={id} value={value} options={getOptions} disabled={disabled} placeholder="未设置" onChange={onChange} />;
 }
@@ -643,8 +654,9 @@ export function FieldInput({
 
     if (field.kind === "reference") {
       const isWidgetArtwork = target === "Widget" && (field.key === "editBox" || field.key === "preview");
+      const isThemePreview = target === "Theme" && field.key === "preview";
       const resources = project.resources.filter((resource) =>
-        !isPreviewResource(resource)
+        (isThemePreview || !isPreviewResource(resource))
         && (!field.referenceTypes || field.referenceTypes.includes(resource.type))
         && (!isWidgetArtwork || (resource.type === "Image" && normalizePath(resource.attrs.src ?? "").startsWith("_widget/")))
       );
@@ -655,7 +667,15 @@ export function FieldInput({
 
       return (
         <div className="reference-field-wrap">
-          <ResourceReferenceSelect id={id} value={value} project={project} resources={resources} disabled={disabled} onChange={onChange} />
+          <ResourceReferenceSelect
+            id={id}
+            value={value}
+            project={project}
+            resources={resources}
+            disabled={disabled}
+            allowPreviewResources={isThemePreview}
+            onChange={onChange}
+          />
           {targetResource ? (
             <button
               type="button"

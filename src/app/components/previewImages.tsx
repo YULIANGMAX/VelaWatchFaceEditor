@@ -1,5 +1,12 @@
 import { createRoot, type Root } from "react-dom/client";
-import { getDeviceDefinition, getResourceName, refName, type WatchfacePreviewContext, type WatchfaceProject } from "../core/model";
+import {
+  createId,
+  getDeviceDefinition,
+  getResourceName,
+  refName,
+  type WatchfacePreviewContext,
+  type WatchfaceProject,
+} from "../core/model";
 import { ResourceRenderer } from "./ResourceRenderer";
 import { layoutAnchorTransform } from "./CanvasStage";
 
@@ -140,7 +147,65 @@ async function nodeToPng(
   });
 }
 
-export async function generateThemePreviews(project: WatchfaceProject): Promise<ThemePreviewImage[]> {
+export function applyThemePreviews(
+  current: WatchfaceProject,
+  previews: ThemePreviewImage[],
+): WatchfaceProject {
+  if (previews.length === 0) return current;
+  const resources = [...current.resources];
+  const assets = { ...current.assets };
+  const themes = current.themes.map((theme) => ({ ...theme, attrs: { ...theme.attrs } }));
+
+  for (const preview of previews) {
+    const theme = themes.find((entry) => entry.id === preview.themeId);
+    if (!theme) continue;
+    const resourceName = preview.resourceName;
+    const assetPath = `_preview/${preview.fileName}`;
+    const previous = assets[assetPath];
+    if (previous && previous.url.startsWith("blob:")) {
+      URL.revokeObjectURL(previous.url);
+    }
+    assets[assetPath] = {
+      path: assetPath,
+      blob: preview.blob,
+      url: URL.createObjectURL(preview.blob),
+      width: current.canvas.width,
+      height: current.canvas.height,
+      imageMetadataLoaded: true,
+    };
+    const existingIndex = resources.findIndex((entry) => entry.type === "Image" && entry.attrs.name === resourceName);
+    if (existingIndex >= 0) {
+      resources[existingIndex] = {
+        ...resources[existingIndex],
+        attrs: { ...resources[existingIndex].attrs, src: assetPath },
+      };
+    } else {
+      resources.push({
+        id: createId("resource"),
+        type: "Image",
+        attrs: { name: resourceName, src: assetPath, compressMethod: "RLEReversed", format: "RGBA32", recolorEnable: "false" },
+        children: [],
+      });
+    }
+    theme.attrs.preview = `@${resourceName}`;
+  }
+
+  const assetFolders = current.assetFolders.includes("_preview")
+    ? current.assetFolders
+    : [...current.assetFolders, "_preview"];
+  return { ...current, resources, assets, themes, assetFolders };
+}
+
+export async function generateThemePreviews(
+  project: WatchfaceProject,
+  targetThemeIds?: string[],
+): Promise<ThemePreviewImage[]> {
+  const targetThemes = targetThemeIds && targetThemeIds.length > 0
+    ? project.themes.filter((theme) => targetThemeIds.includes(theme.id))
+    : project.themes;
+
+  if (targetThemes.length === 0) return [];
+
   const width = project.canvas.width;
   const height = project.canvas.height;
   const cornerRadius = getDeviceDefinition(project.device).display.cornerRadius;
@@ -171,7 +236,7 @@ export async function generateThemePreviews(project: WatchfaceProject): Promise<
     root = createRoot(container);
     root.render(
       <div>
-        {project.themes.map((theme) => (
+        {targetThemes.map((theme) => (
           <div
             className="watchface-stage preview-stage"
             key={theme.id}
@@ -218,8 +283,8 @@ export async function generateThemePreviews(project: WatchfaceProject): Promise<
 
     const stages = Array.from(container.querySelectorAll<HTMLElement>(".preview-stage"));
     const results: ThemePreviewImage[] = [];
-    for (let index = 0; index < project.themes.length; index += 1) {
-      const theme = project.themes[index];
+    for (let index = 0; index < targetThemes.length; index += 1) {
+      const theme = targetThemes[index];
       const stage = stages[index];
       if (!theme || !stage) continue;
       const themeName = theme.attrs.name?.trim() || (theme.attrs.type === "AOD" ? "息屏" : `主题${index + 1}`);

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import {
   ArrowDown,
   ArrowUp,
+  Camera,
   Check,
   ChevronDown,
   ChevronsDown,
@@ -11,6 +12,7 @@ import {
   Crosshair,
   Grid3X3,
   GripHorizontal,
+  Loader2,
   Maximize2,
   Minus,
   Moon,
@@ -28,6 +30,8 @@ import { getDeviceDefinition } from "../device-definition";
 import { useEditorStore, type GridMode } from "../store/editorStore";
 import { ResourceRenderer } from "./ResourceRenderer";
 import { ContextMenu, type ContextMenuEntry } from "./ContextMenu";
+import { applyThemePreviews, generateThemePreviews } from "./previewImages";
+import { writeThemePreviewDirectory } from "../core/projectIO";
 
 export function clampToolbarPosition(
   pos: { x: number; y: number },
@@ -364,9 +368,11 @@ export function computeCenterCoordinates(
 }
 
 export function CanvasStage(_props: {
+  projectDirectory?: FileSystemDirectoryHandle | null;
   onOpenMetrics?: () => void;
   metricsOpen?: boolean;
 } = {}) {
+  const { projectDirectory } = _props;
   const project = useEditorStore((state) => state.project);
   const selectedThemeId = useEditorStore((state) => state.selectedThemeId);
   const selectedLayoutId = useEditorStore((state) => state.selection.kind === "layout" ? state.selection.layoutId : null);
@@ -434,6 +440,34 @@ export function CanvasStage(_props: {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [themeMenuOpen, addMenuOpen]);
+
+  const [generatingPreview, setGeneratingPreview] = useState(false);
+
+  const handleGenerateCurrentThemePreview = async () => {
+    if (!theme || generatingPreview) return;
+    setGeneratingPreview(true);
+    try {
+      const previews = await generateThemePreviews(project, [theme.id]);
+      if (previews.length > 0) {
+        if (projectDirectory) {
+          await writeThemePreviewDirectory(projectDirectory, previews);
+        }
+        const updated = applyThemePreviews(project, previews);
+        useEditorStore.setState((state) => ({
+          project: updated,
+          contentRevision: state.contentRevision + 1,
+        }));
+      }
+    } catch (error) {
+      void dialogManager.alert({
+        title: "生成预览图失败",
+        message: error instanceof Error ? error.message : "生成预览图时发生错误",
+        type: "error",
+      });
+    } finally {
+      setGeneratingPreview(false);
+    }
+  };
 
   const handleDeleteTheme = async (targetTheme: (typeof project.themes)[number]) => {
     if (project.themes.length <= 1) {
@@ -1192,7 +1226,16 @@ export function CanvasStage(_props: {
           <div className="floating-divider" />
           <button className="icon-button" onClick={() => setZoom(1)} title="重置为 100%" aria-label="重置缩放为 100%"><RotateCcw size={15} /></button>
           <button className="icon-button" onClick={fit} title="适合窗口"><Maximize2 size={15} /></button>
-
+          <div className="floating-divider" />
+          <button
+            className="icon-button"
+            onClick={handleGenerateCurrentThemePreview}
+            disabled={generatingPreview}
+            title={generatingPreview ? "正在生成预览图..." : `生成当前主题「${theme?.attrs.name || "未命名"}」的预览图并设置属性`}
+            aria-label="生成预览图"
+          >
+            {generatingPreview ? <Loader2 size={15} className="spin" /> : <Camera size={15} />}
+          </button>
         </div>
       </div>
       <div className="canvas-footer">

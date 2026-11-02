@@ -20,15 +20,16 @@ import {
   createBlankProject,
   createId,
   getDeviceProfile,
+  getResourceName,
   getThemePreviewUrl,
   PROJECT_EDITOR_VERSION,
+  refName,
   RESERVED_ASSET_FOLDERS,
   watchfaceDisplayName,
   type Diagnostic,
   type ParseResult,
-  type WatchfaceProject,
 } from "./core/model";
-import { generateThemePreviews, type ThemePreviewImage } from "./components/previewImages";
+import { applyThemePreviews, generateThemePreviews, type ThemePreviewImage } from "./components/previewImages";
 import { AppIcon } from "./components/AppIcon";
 import {
   disposeProjectAssets,
@@ -37,6 +38,7 @@ import {
   importProjectVirtualFiles,
   readResourceLibrary,
   saveProjectDirectory,
+  saveProjectPreviewAssets,
   writeThemePreviewDirectory,
   type ProjectLoadProgress,
 } from "./core/projectIO";
@@ -455,57 +457,6 @@ export function App() {
     setXmlDiagnostics([]);
   };
 
-  const applyThemePreviews = (current: WatchfaceProject, previews: ThemePreviewImage[]): WatchfaceProject => {
-    const staleIds = current.resources
-      .filter((entry) => entry.type === "Image" && (entry.attrs.name ?? "").startsWith("_preview_"))
-      .map((entry) => entry.id);
-    const resources = current.resources.filter((entry) => !staleIds.includes(entry.id));
-    const assets = { ...current.assets };
-    const keepAssetPaths = new Set(previews.map((entry) => `_preview/${entry.fileName}`));
-    for (const path of Object.keys(assets)) {
-      if (path.startsWith("_preview/") && !keepAssetPaths.has(path)) {
-        const asset = assets[path];
-        if (asset.url.startsWith("blob:")) URL.revokeObjectURL(asset.url);
-        delete assets[path];
-      }
-    }
-    const themes = current.themes.map((theme) => ({ ...theme, attrs: { ...theme.attrs } }));
-    for (const preview of previews) {
-      const theme = themes.find((entry) => entry.id === preview.themeId);
-      if (!theme) continue;
-      const resourceName = preview.resourceName;
-      const assetPath = `_preview/${preview.fileName}`;
-      const previous = assets[assetPath];
-      if (previous && previous.url.startsWith("blob:")) {
-        URL.revokeObjectURL(previous.url);
-      }
-      assets[assetPath] = {
-        path: assetPath,
-        blob: preview.blob,
-        url: URL.createObjectURL(preview.blob),
-        width: current.canvas.width,
-        height: current.canvas.height,
-        imageMetadataLoaded: true,
-      };
-      const existing = resources.find((entry) => entry.type === "Image" && entry.attrs.name === resourceName);
-      if (existing) {
-        existing.attrs = { ...existing.attrs, src: assetPath };
-      } else {
-        resources.push({
-          id: createId("resource"),
-          type: "Image",
-          attrs: { name: resourceName, src: assetPath, compressMethod: "RLEReversed", format: "RGBA32", recolorEnable: "false" },
-          children: [],
-        });
-      }
-      theme.attrs.preview = `@${resourceName}`;
-    }
-    const assetFolders = current.assetFolders.includes("_preview")
-      ? current.assetFolders
-      : [...current.assetFolders, "_preview"];
-    return { ...current, resources, assets, themes, assetFolders };
-  };
-
   const saveProject = async () => {
     if (saving) return;
     if (!projectDirectory) {
@@ -518,18 +469,53 @@ export function App() {
       }
       return;
     }
+
+    const currentProject = useEditorStore.getState().project;
+    const normalThemes = currentProject.themes.filter((theme) => theme.attrs.type === "normal");
+    const targetThemesToCheck = normalThemes.length > 0 ? normalThemes : [currentProject.themes[0]];
+
+    const missingThemes = targetThemesToCheck.filter((theme) => {
+      const ref = theme.attrs.preview;
+      if (!ref) return true;
+      const name = refName(ref);
+      const hasImageResource = currentProject.resources.some(
+        (r) => r.type === "Image" && (getResourceName(r) === name || r.attrs.src === name)
+      );
+      if (hasImageResource) return false;
+      return !Boolean(currentProject.assets[ref] || currentProject.assets[name]);
+    });
+
+    let target = currentProject;
+    if (missingThemes.length > 0) {
+      const themeNames = missingThemes.map((t) => t.attrs.name || "未命名主题").join("、");
+      const ok = await dialogManager.confirm({
+        title: "缺少表盘预览图",
+        message: `主题「${themeNames}」缺少预览图。\n是否自动生成并保存？`,
+        confirmText: "自动生成并保存",
+        cancelText: "取消",
+      });
+      if (!ok) return;
+
+      try {
+        const previews = await generateThemePreviews(currentProject, missingThemes.map((t) => t.id)).catch((error) => {
+          console.warn("生成主题预览图失败，已跳过：", error);
+          return [] as ThemePreviewImage[];
+        });
+        if (previews.length > 0) {
+          if (projectDirectory) {
+            await writeThemePreviewDirectory(projectDirectory, previews);
+          }
+          target = applyThemePreviews(currentProject, previews);
+          useEditorStore.setState({ project: target });
+        }
+      } catch (error) {
+        console.warn("生成预览图发生错误：", error);
+      }
+    }
+
     setSaving(true);
     try {
-      const previews = await generateThemePreviews(project).catch((error) => {
-        console.warn("生成主题预览图失败，已跳过：", error);
-        return [] as ThemePreviewImage[];
-      });
-      let target = project;
-      if (previews.length > 0) {
-        await writeThemePreviewDirectory(projectDirectory, previews);
-        target = applyThemePreviews(project, previews);
-        useEditorStore.setState({ project: target });
-      }
+      await saveProjectPreviewAssets(projectDirectory, target);
       await saveProjectDirectory(projectDirectory, target);
       setParseDiagnostics(parseDiagnostics.filter((entry) => entry.code !== "missing-description"));
       markSaved();
@@ -805,7 +791,7 @@ export function App() {
       >
         <Sidebar projectDirectory={projectDirectory} />
         <div className="sidebar-resizer" onPointerDown={startSidebarResize} title="拖动调整左侧栏宽度" />
-        <CanvasStage />
+        <CanvasStage projectDirectory={projectDirectory} />
         <div className="inspector-resizer" onPointerDown={startInspectorResize} title="拖动调整属性栏宽度" />
         <Inspector projectDirectory={projectDirectory} />
       </main>

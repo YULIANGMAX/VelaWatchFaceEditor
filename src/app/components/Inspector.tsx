@@ -1348,7 +1348,6 @@ export function Inspector({ projectDirectory }: InspectorProps = {}) {
           onChange={(value) => updateTheme(theme.id, "name", value)}
         />
         <div className="inspector-body">
-          {/* preview 预览图由保存流程自动生成，不允许手动编辑 */}
           <InspectorCard
             title="主题属性"
             icon={<Palette size={15} className="card-icon" />}
@@ -1356,7 +1355,6 @@ export function Inspector({ projectDirectory }: InspectorProps = {}) {
             <Fields
               fields={THEME_FIELDS.filter(
                 (field) =>
-                  field.key !== "preview" &&
                   field.key !== "name" &&
                   field.key !== "recolorTable" &&
                   field.key !== "colorGroupTable" &&

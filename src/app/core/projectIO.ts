@@ -762,10 +762,29 @@ export async function saveProjectDirectory(
   );
 }
 
+export async function saveProjectPreviewAssets(
+  directory: FileSystemDirectoryHandle,
+  project: WatchfaceProject,
+): Promise<void> {
+  const previewAssets = Object.values(project.assets).filter(
+    (asset) => asset.path.startsWith("_preview/") && asset.blob,
+  );
+  if (previewAssets.length === 0) return;
+  const resources = await directory.getDirectoryHandle(PROJECT_RESOURCES_DIRECTORY, { create: true });
+  const previewDirectory = await resources.getDirectoryHandle(PROJECT_PREVIEW_DIRECTORY, { create: true });
+  for (const asset of previewAssets) {
+    const fileName = asset.path.replace(/^_preview\//, "");
+    if (!fileName || !asset.blob) continue;
+    const handle = await previewDirectory.getFileHandle(fileName, { create: true });
+    await writeBlob(handle, asset.blob, () => undefined);
+  }
+}
+
 export async function writeThemePreviewDirectory(
   directory: FileSystemDirectoryHandle,
   previews: Array<{ fileName: string; blob: Blob }>,
 ): Promise<void> {
+  if (previews.length === 0) return;
   const resources = await directory.getDirectoryHandle(PROJECT_RESOURCES_DIRECTORY, { create: true });
   let previewDirectory: FileSystemDirectoryHandle;
   try {
@@ -773,12 +792,6 @@ export async function writeThemePreviewDirectory(
   } catch (error) {
     if (!(error instanceof DOMException && error.name === "NotFoundError")) throw error;
     previewDirectory = await resources.getDirectoryHandle(PROJECT_PREVIEW_DIRECTORY, { create: true });
-  }
-  const keepNames = new Set(previews.map((entry) => entry.fileName));
-  for await (const [name] of previewDirectory.entries()) {
-    if (!keepNames.has(name)) {
-      await previewDirectory.removeEntry(name, { recursive: true }).catch(() => undefined);
-    }
   }
   for (const preview of previews) {
     const handle = await previewDirectory.getFileHandle(preview.fileName, { create: true });
