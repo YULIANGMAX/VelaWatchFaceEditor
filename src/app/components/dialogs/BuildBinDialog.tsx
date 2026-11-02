@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Smartphone } from "lucide-react";
 import { useEditorStore } from "../../store/editorStore";
+import { DeviceDeployDialog } from "./DeviceDeployDialog";
 import {
   createCompileInput,
   WatchfaceCompileError,
@@ -41,6 +42,7 @@ export function BuildBinDialog({
   const [progress, setProgress] = useState<CompileProgress>({ stage: "prepare", completed: 0, total: 1 });
   const [result, setResult] = useState<CompileResult | null>(null);
   const [buildDiagnostics, setBuildDiagnostics] = useState<Diagnostic[]>([]);
+  const [deployOpen, setDeployOpen] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const autoStarted = useRef(false);
   const errorCount = diagnostics.filter((entry) => entry.severity === "error").length;
@@ -53,6 +55,7 @@ export function BuildBinDialog({
       setPhase("idle");
       setResult(null);
       setBuildDiagnostics([]);
+      setDeployOpen(false);
       autoStarted.current = false;
     }
   }, [open]);
@@ -186,12 +189,42 @@ export function BuildBinDialog({
           </div>
         ) : null}
 
-        <footer className="modal-actions">
+        <footer className="modal-actions" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            {phase === "success" && result ? (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => setDeployOpen(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  color: "#059669",
+                  borderColor: "#a7f3d0",
+                  backgroundColor: "#ecfdf5",
+                }}
+              >
+                <Smartphone size={14} />
+                <span>推送到模拟器...</span>
+              </button>
+            ) : null}
+          </div>
           <button className="primary-button" disabled={working} onClick={onClose}>
             确定
           </button>
         </footer>
       </section>
+
+      {deployOpen && (
+        <DeviceDeployDialog
+          open={deployOpen}
+          directory={directory}
+          binBytes={result?.bytes}
+          defaultWatchfaceId={project.watchface.id || project.description.pkgName || directory?.name}
+          onClose={() => setDeployOpen(false)}
+        />
+      )}
     </div>
   );
 }

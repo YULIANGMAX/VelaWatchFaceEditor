@@ -2,6 +2,8 @@ use std::fs;
 use std::path::Path;
 use serde::{Deserialize, Serialize};
 
+mod adb;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct NativeDirEntry {
     pub name: String,
@@ -135,6 +137,9 @@ pub fn run() {
             native_fs_remove_entry,
             native_fs_rename_entry,
             native_fs_check_exists,
+            adb::adb_check_environment,
+            adb::adb_list_devices,
+            adb::adb_deploy_watchface,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

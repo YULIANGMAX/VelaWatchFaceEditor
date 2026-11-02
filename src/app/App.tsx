@@ -9,6 +9,7 @@ import {
   Redo2,
   Save,
   ShieldCheck,
+  Smartphone,
   Undo2,
 } from "lucide-react";
 import { CanvasStage } from "./components/CanvasStage";
@@ -77,6 +78,9 @@ const BoundaryDialog = lazy(() =>
 const BuildBinDialog = lazy(() =>
   import("./components/dialogs/BuildBinDialog").then((module) => ({ default: module.BuildBinDialog }))
 );
+const DeviceDeployDialog = lazy(() =>
+  import("./components/dialogs/DeviceDeployDialog").then((module) => ({ default: module.DeviceDeployDialog }))
+);
 import { CodeEditorDialog } from "./components/dialogs/CodeEditorDialog";
 
 export function App() {
@@ -113,6 +117,7 @@ export function App() {
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [boundaryResult, setBoundaryResult] = useState<ParseResult | null>(null);
   const [buildOpen, setBuildOpen] = useState(false);
+  const [deployOpen, setDeployOpen] = useState(false);
   const [xmlEditorOpen, setXmlEditorOpen] = useState(false);
   const [xmlDraft, setXmlDraft] = useState("");
   const [xmlDiagnostics, setXmlDiagnostics] = useState<Diagnostic[]>([]);
@@ -743,6 +748,18 @@ export function App() {
 
         {/* 右区：调试工具与项目诊断 */}
         <div className="topbar-right">
+          <button
+            type="button"
+            className="topbar-deploy-btn"
+            onClick={() => setDeployOpen(true)}
+            title="打开模拟器部署面板（将编译生成的 resource.bin 推送到手表模拟器）"
+          >
+            <Smartphone size={14} />
+            <span>部署到模拟器</span>
+          </button>
+
+          <div className="topbar-divider" />
+
           <PreviewBackgroundDropdown />
 
           <button
@@ -805,6 +822,14 @@ export function App() {
         )}
         {buildOpen && (
           <BuildBinDialog open={buildOpen} directory={projectDirectory} diagnostics={diagnostics} clean={clean} saving={saving} onClose={() => setBuildOpen(false)} />
+        )}
+        {deployOpen && (
+          <DeviceDeployDialog
+            open={deployOpen}
+            directory={projectDirectory}
+            defaultWatchfaceId={project.watchface.id || project.description.pkgName || projectDirectory?.name}
+            onClose={() => setDeployOpen(false)}
+          />
         )}
         {xmlEditorOpen && (
           <CodeEditorDialog

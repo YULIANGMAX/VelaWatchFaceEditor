@@ -1042,6 +1042,69 @@ button.directory-gate-button:disabled {
   border-color: #272d36;
 }
 
+/* 部署运行按钮与设备指示胶囊 */
+.topbar-deploy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #10b981;
+  background: #132724;
+  border: 1px solid #1f4e45;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.topbar-deploy-btn:hover:not(:disabled) {
+  background: #1a3833;
+  color: #34d399;
+  border-color: #2e7d6f;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.topbar-deploy-btn:active:not(:disabled) {
+  background: #0f201d;
+}
+
+.topbar-deploy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #6b7280;
+  background: #191d24;
+  border-color: #272d36;
+}
+
+.topbar-device-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 4px;
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.device-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  flex-shrink: 0;
+}
+
 /* 项目诊断：置于顶栏最右端，清晰反馈工程健康度 */
 .build-health-btn {
   display: inline-flex;

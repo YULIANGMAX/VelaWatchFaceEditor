@@ -8,6 +8,23 @@ export async function resourceBinExists(directory: FileSystemDirectoryHandle): P
   }
 }
 
+export async function getResourceBinFile(directory: FileSystemDirectoryHandle): Promise<File | null> {
+  try {
+    const handle = await directory.getFileHandle("resource.bin");
+    return await handle.getFile();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "NotFoundError") return null;
+    throw error;
+  }
+}
+
+export async function readResourceBinBytes(directory: FileSystemDirectoryHandle): Promise<Uint8Array | null> {
+  const file = await getResourceBinFile(directory);
+  if (!file) return null;
+  const buffer = await file.arrayBuffer();
+  return new Uint8Array(buffer);
+}
+
 export async function writeResourceBin(
   directory: FileSystemDirectoryHandle,
   bytes: Uint8Array,
