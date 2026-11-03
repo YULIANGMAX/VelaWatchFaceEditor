@@ -371,7 +371,7 @@
     {
       "type": "File",
       "defaults": {
-        "name": "_lua/code/main.lua",
+        "name": "File1",
         "filename": ""
       },
       "fields": [
