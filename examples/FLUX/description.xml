@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<watch>
+    <shape>square</shape>
+    <name>FLUX</name>
+    <deviceType>P65</deviceType>
+    <version>1.0.0</version>
+    <size>432x514</size>
+    <author>VWFE</author>
+    <pkgName>000000000000</pkgName>
+    <watchOS>vela</watchOS>
+    <_id>4b80e77938ff2d37d6b0c556b9b7cc1e</_id>
+    <imageFormat>indexed8</imageFormat>
+    <imageCompression>true</imageCompression>
+    <editorVersion>0.2.1</editorVersion>
+    <webVersionCreatedAt>2026-10-21T10:41:35+08:00</webVersionCreatedAt>
+    <editorVersionCreatedAt>0.2.1</editorVersionCreatedAt>
+    <webVersionUpdatedAt>2026-10-21T10:41:35+08:00</webVersionUpdatedAt>
+    <editorVersionUpdatedAt>0.2.1</editorVersionUpdatedAt>
+    <watchfaceType>normal</watchfaceType>
+    <imageArrayRamMethod>whole</imageArrayRamMethod>
+    <_recolorEnable>false</_recolorEnable>
+    <webVersionExportAt>2026-10-21T10:41:35+08:00</webVersionExportAt>
+    <editorVersionExportAt>0.2.1</editorVersionExportAt>
+</watch>

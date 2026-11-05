@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Watchface id="000000000000" name="FLUX">
+    <Resources>
+        <Image name="_preview_FLUX_normal" src="_preview/_preview_FLUX_normal.png" compressMethod="RLEReversed" format="indexed8" recolorEnable="false"/>
+        <File name="main.lua" filename="_lua/main.lua"/>
+        <File name="time_hh_0" filename="_lua/time_hh/0.rle"/>
+        <File name="time_hh_1" filename="_lua/time_hh/1.rle"/>
+        <File name="time_hh_2" filename="_lua/time_hh/2.rle"/>
+        <File name="time_hl_0" filename="_lua/time_hl/0.rle"/>
+        <File name="time_hl_1" filename="_lua/time_hl/1.rle"/>
+        <File name="time_hl_2" filename="_lua/time_hl/2.rle"/>
+        <File name="time_hl_3" filename="_lua/time_hl/3.rle"/>
+        <File name="time_hl_4" filename="_lua/time_hl/4.rle"/>
+        <File name="time_hl_5" filename="_lua/time_hl/5.rle"/>
+        <File name="time_hl_6" filename="_lua/time_hl/6.rle"/>
+        <File name="time_hl_7" filename="_lua/time_hl/7.rle"/>
+        <File name="time_hl_8" filename="_lua/time_hl/8.rle"/>
+        <File name="time_hl_9" filename="_lua/time_hl/9.rle"/>
+        <File name="time_mh_0" filename="_lua/time_mh/0.rle"/>
+        <File name="time_mh_1" filename="_lua/time_mh/1.rle"/>
+        <File name="time_mh_2" filename="_lua/time_mh/2.rle"/>
+        <File name="time_mh_3" filename="_lua/time_mh/3.rle"/>
+        <File name="time_mh_4" filename="_lua/time_mh/4.rle"/>
+        <File name="time_mh_5" filename="_lua/time_mh/5.rle"/>
+        <File name="time_ml_0" filename="_lua/time_ml/0.rle"/>
+        <File name="time_ml_1" filename="_lua/time_ml/1.rle"/>
+        <File name="time_ml_2" filename="_lua/time_ml/2.rle"/>
+        <File name="time_ml_3" filename="_lua/time_ml/3.rle"/>
+        <File name="time_ml_4" filename="_lua/time_ml/4.rle"/>
+        <File name="time_ml_5" filename="_lua/time_ml/5.rle"/>
+        <File name="time_ml_6" filename="_lua/time_ml/6.rle"/>
+        <File name="time_ml_7" filename="_lua/time_ml/7.rle"/>
+        <File name="time_ml_8" filename="_lua/time_ml/8.rle"/>
+        <File name="time_ml_9" filename="_lua/time_ml/9.rle"/>
+    </Resources>
+    <Theme type="normal" name="FLUX" bgColor="#000000" preview="@_preview_FLUX_normal">
+        <Layout ref="@main.lua" x="0" y="0"/>
+    </Theme>
+</Watchface>

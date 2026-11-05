@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Watchface id="754125972368" name="@watchfaceName">
+    <Resources>
+        <Translation name="watchfaceName">
+            <Item language="zh_CN" str="简单"/>
+            <Item language="en_US" str="Simple"/>
+        </Translation>
+        <Image name="星期-前缀" src="han/han_xingqi.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Image name="小百分号" src="symbol_s/symbol_s_percent.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <DataItemImageNumber name="星期-几" source="dateWeek" ref="@汉字日到六" totalDigits="1" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0"/>
+        <Widget name="步数组件" groupType="general" jumpApp="activities" w="124" h="26" flex_direction="row" justify_content="flex-start" align_items="center">
+            <Item ref="@步数图标" x="0" y="0"/>
+            <Item ref="@步数-数值" x="0" y="0"/>
+        </Widget>
+        <Widget name="电量组件" groupType="general" jumpApp="settings" w="124" h="26">
+            <Item ref="@电量-数值" x="99" y="0"/>
+            <Item ref="@电量" x="100" y="0"/>
+        </Widget>
+        <Widget name="天气组件" groupType="general" jumpApp="weather" w="127" h="60" flex_direction="row" justify_content="center" align_content="center" align_items="center" gap="7">
+            <Item ref="@天气" x="0" y="0"/>
+            <Item ref="@天气-气温数值" x="0" y="0"/>
+        </Widget>
+        <Widget name="日期组件" groupType="general" jumpApp="calendar" w="252" h="50" flex_direction="row" justify_content="center" align_content="center" align_items="center">
+            <Item ref="@日期-月数值" x="0" y="0"/>
+            <Item ref="@日期-日数值" x="0" y="0"/>
+        </Widget>
+        <Widget name="时间组件" groupType="general" w="362" h="100" flex_direction="row" justify_content="center" align_content="center" align_items="center" gap="21">
+            <Item ref="@时钟-小时" x="0" y="0"/>
+            <Item ref="@时钟-冒号" x="0" y="0"/>
+            <Item ref="@时钟-分钟" x="0" y="0"/>
+        </Widget>
+        <Widget name="星期组件" groupType="general" jumpApp="perpetualcalendar" w="150" h="50" flex_direction="row" justify_content="center" align_content="center" align_items="center">
+            <Item ref="@星期-前缀" x="0" y="0"/>
+            <Item ref="@星期-几" x="0" y="0"/>
+        </Widget>
+        <DataItemImageNumber name="电量-数值" source="systemStatusBattery" align="right" ref="@小数字0-9含减号和小数点" totalDigits="3" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0" unitIcon="@小百分号"/>
+        <DataItemImageValues name="电量" source="systemStatusBattery" ref="@电量图标">
+            <Param value="0"/>
+            <Param value="10"/>
+            <Param value="20"/>
+            <Param value="30"/>
+            <Param value="40"/>
+            <Param value="50"/>
+            <Param value="60"/>
+            <Param value="70"/>
+            <Param value="80"/>
+            <Param value="90"/>
+            <Param value="100"/>
+        </DataItemImageValues>
+        <DataItemImageNumber name="日期-月数值" source="dateMonth" ref="@中数字0-9" totalDigits="2" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0" unitIcon="@日期-月"/>
+        <Image name="日期-月" src="han/han_yue.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <DataItemImageNumber name="日期-日数值" source="dateDay" ref="@中数字0-9" totalDigits="2" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0" unitIcon="@日期-日"/>
+        <Image name="日期-日" src="han/han_ri.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Image name="心率图标" src="icon_heart.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Widget name="心率数值带单位" groupType="general" w="70" h="52" flex_direction="column" justify_content="center" align_content="center" align_items="center" gap="6">
+            <Item ref="@心率-数值"/>
+            <Item ref="@心率-单位"/>
+        </Widget>
+        <Widget name="睡眠数值带单位" groupType="general" w="70" h="52" flex_direction="column" justify_content="center" align_content="center" align_items="center" gap="6">
+            <Item ref="@睡眠-数值"/>
+            <Item ref="@睡眠-单位"/>
+        </Widget>
+        <Widget name="心率组件" groupType="general" jumpApp="heartrate" w="131" h="60" flex_direction="row" justify_content="center" align_content="center" align_items="center" gap="7">
+            <Item ref="@心率图标" x="0" y="0"/>
+            <Item ref="@心率数值带单位" x="0" y="0"/>
+        </Widget>
+        <Image name="睡眠图标" src="icon_sleep.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Widget name="睡眠组件" groupType="general" jumpApp="sleep" w="131" h="60" flex_direction="row" justify_content="center" align_content="center" align_items="center" gap="7">
+            <Item ref="@睡眠图标" x="0" y="0"/>
+            <Item ref="@睡眠数值带单位" x="0" y="0"/>
+        </Widget>
+        <DataItemImageValues name="天气" source="weatherCurrentWeather" ref="@天气图标">
+            <Param value="0"/>
+            <Param value="1"/>
+            <Param value="2"/>
+            <Param value="4"/>
+            <Param value="5"/>
+            <Param value="6"/>
+            <Param value="7"/>
+            <Param value="8"/>
+            <Param value="9"/>
+            <Param value="13"/>
+            <Param value="15"/>
+            <Param value="16"/>
+            <Param value="18"/>
+            <Param value="19"/>
+            <Param value="20"/>
+            <Param value="29"/>
+            <Param value="53"/>
+            <Param value="99"/>
+        </DataItemImageValues>
+        <DataItemImageNumber name="天气-气温数值" source="weatherCurrentTemperature" ref="@小数字0-9含减号和小数点" totalDigits="2" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0" unitIcon="@气温-单位"/>
+        <DataItemImageNumber name="时钟-小时" source="timeHour" ref="@大数字0-9" totalDigits="2" decimalDigits="0" leadingZero="true" trailingZero="false" decimalOffsetX="0" space="0"/>
+        <Image name="时钟-冒号" src="symbol_l/symbol_l_colon.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <DataItemImageNumber name="时钟-分钟" source="timeMinute" ref="@大数字0-9" totalDigits="2" decimalDigits="0" leadingZero="true" trailingZero="false" decimalOffsetX="0" space="0"/>
+        <Image name="步数图标" src="icon_step.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Image name="气温-单位" src="weather/weather_du.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Image name="睡眠-单位" src="han/han_xiaoshi.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <Image name="心率-单位" src="han/han_cifen.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+        <ImageArray name="汉字日到六" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="han/han_ri.png"/>
+            <Image src="han/han_1.png"/>
+            <Image src="han/han_2.png"/>
+            <Image src="han/han_3.png"/>
+            <Image src="han/han_4.png"/>
+            <Image src="han/han_5.png"/>
+            <Image src="han/han_6.png"/>
+        </ImageArray>
+        <ImageArray name="大数字0-9" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="num_l/num_l_0.png"/>
+            <Image src="num_l/num_l_1.png"/>
+            <Image src="num_l/num_l_2.png"/>
+            <Image src="num_l/num_l_3.png"/>
+            <Image src="num_l/num_l_4.png"/>
+            <Image src="num_l/num_l_5.png"/>
+            <Image src="num_l/num_l_6.png"/>
+            <Image src="num_l/num_l_7.png"/>
+            <Image src="num_l/num_l_8.png"/>
+            <Image src="num_l/num_l_9.png"/>
+        </ImageArray>
+        <ImageArray name="中数字0-9" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="num_m/num_m_0.png"/>
+            <Image src="num_m/num_m_1.png"/>
+            <Image src="num_m/num_m_2.png"/>
+            <Image src="num_m/num_m_3.png"/>
+            <Image src="num_m/num_m_4.png"/>
+            <Image src="num_m/num_m_5.png"/>
+            <Image src="num_m/num_m_6.png"/>
+            <Image src="num_m/num_m_7.png"/>
+            <Image src="num_m/num_m_8.png"/>
+            <Image src="num_m/num_m_9.png"/>
+        </ImageArray>
+        <ImageArray name="小数字0-9含减号和小数点" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="num_s/num_s_0.png"/>
+            <Image src="num_s/num_s_1.png"/>
+            <Image src="num_s/num_s_2.png"/>
+            <Image src="num_s/num_s_3.png"/>
+            <Image src="num_s/num_s_4.png"/>
+            <Image src="num_s/num_s_5.png"/>
+            <Image src="num_s/num_s_6.png"/>
+            <Image src="num_s/num_s_7.png"/>
+            <Image src="num_s/num_s_8.png"/>
+            <Image src="num_s/num_s_9.png"/>
+            <Image src="symbol_s/symbol_s_minus.png"/>
+            <Image src="symbol_s/symbol_s_dot.png"/>
+        </ImageArray>
+        <ImageArray name="天气图标" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="weather/weather_0.png"/>
+            <Image src="weather/weather_1.png"/>
+            <Image src="weather/weather_2.png"/>
+            <Image src="weather/weather_4.png"/>
+            <Image src="weather/weather_5.png"/>
+            <Image src="weather/weather_6.png"/>
+            <Image src="weather/weather_7.png"/>
+            <Image src="weather/weather_8.png"/>
+            <Image src="weather/weather_9.png"/>
+            <Image src="weather/weather_13.png"/>
+            <Image src="weather/weather_15.png"/>
+            <Image src="weather/weather_16.png"/>
+            <Image src="weather/weather_18.png"/>
+            <Image src="weather/weather_19.png"/>
+            <Image src="weather/weather_20.png"/>
+            <Image src="weather/weather_29.png"/>
+            <Image src="weather/weather_53.png"/>
+            <Image src="weather/weather_99.png"/>
+        </ImageArray>
+        <ImageArray name="电量图标" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false">
+            <Image src="battery/battery_0.png"/>
+            <Image src="battery/battery_10.png"/>
+            <Image src="battery/battery_20.png"/>
+            <Image src="battery/battery_30.png"/>
+            <Image src="battery/battery_40.png"/>
+            <Image src="battery/battery_50.png"/>
+            <Image src="battery/battery_60.png"/>
+            <Image src="battery/battery_70.png"/>
+            <Image src="battery/battery_80.png"/>
+            <Image src="battery/battery_90.png"/>
+            <Image src="battery/battery_100.png"/>
+        </ImageArray>
+        <DataItemImageNumber name="步数-数值" source="healthStepCount" align="left" ref="@小数字0-9含减号和小数点" totalDigits="5" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0"/>
+        <DataItemImageNumber name="心率-数值" source="healthHeartRate" ref="@小数字0-9含减号和小数点" totalDigits="3" decimalDigits="0" leadingZero="false" trailingZero="false" decimalOffsetX="0" space="0"/>
+        <DataItemImageNumber name="睡眠-数值" source="healthSleepDuration" ref="@小数字0-9含减号和小数点" totalDigits="4" decimalDigits="1" leadingZero="false" trailingZero="false" decimalOffsetX="-10" space="0"/>
+        <Image name="_preview_样式1_normal" src="_preview/_preview_样式1_normal.png" compressMethod="RLEReversed" format="RGBA32" recolorEnable="false"/>
+    </Resources>
+    <Theme type="normal" name="样式1" bgColor="#000000" preview="@_preview_样式1_normal">
+        <Layout ref="@心率组件" x="41" y="437"/>
+        <Layout ref="@睡眠组件" x="261" y="437"/>
+        <Layout ref="@星期组件" x="141" y="370"/>
+        <Layout ref="@时间组件" x="35" y="240"/>
+        <Layout ref="@日期组件" x="90" y="160"/>
+        <Layout ref="@天气组件" x="140" y="70"/>
+        <Layout ref="@电量组件" x="260" y="19"/>
+        <Layout ref="@步数组件" x="48" y="19"/>
+    </Theme>
+</Watchface>
