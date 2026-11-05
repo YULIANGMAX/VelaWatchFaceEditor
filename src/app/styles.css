@@ -395,6 +395,7 @@ button.directory-gate-button:disabled {
   cursor: not-allowed;
 }
 
+
 .recent-project-main-btn strong,
 .recent-project-main-btn span {
   overflow: hidden;
@@ -7060,6 +7061,169 @@ button.directory-gate-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* LVGL 图像格式转换卡片 */
+.asset-convert-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.asset-convert-hint {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #64748b;
+  margin: 0;
+}
+
+.asset-convert-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.asset-convert-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  gap: 4px;
+}
+
+.asset-convert-btn:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #5d8c89;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.asset-convert-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.asset-convert-btn-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+}
+
+.asset-convert-btn-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.asset-convert-btn-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.asset-convert-btn-tag.is-rle {
+  background: rgba(217, 119, 6, 0.12);
+  color: #b45309;
+}
+
+.asset-convert-btn-tag.is-bin {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.asset-convert-btn-desc {
+  font-size: 10px;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+/* 转换结果反馈面板 */
+.asset-convert-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+}
+
+.asset-convert-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.asset-convert-result-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #334155;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.asset-convert-result-ratio {
+  font-weight: 700;
+  color: #15803d;
+}
+
+.asset-convert-result-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.asset-convert-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  border: 1px solid transparent;
+}
+
+.asset-convert-action-btn.is-download {
+  background: #ffffff;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.asset-convert-action-btn.is-download:hover {
+  background: #dcfce7;
+}
+
+.asset-convert-action-btn.is-navigate {
+  background: #166534;
+  color: #ffffff;
+}
+
+.asset-convert-action-btn.is-navigate:hover {
+  background: #14532d;
+}
+
 
 
 

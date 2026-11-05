@@ -97,6 +97,7 @@ export interface EditorState {
   replaceAssetLibrary: (assets: WatchfaceProject["assets"], folders: string[]) => void;
   syncAssetLibrary: (assets: WatchfaceProject["assets"], folders: string[]) => void;
   renameAsset: (path: string, newName: string) => "moved" | "same" | "missing" | "conflict";
+  addAsset: (asset: ProjectAsset) => void;
   updateAssetContent: (path: string, content: string) => boolean;
   removeAsset: (path: string) => boolean;
   addAssetFolder: (path: string) => boolean;
@@ -765,6 +766,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     });
     return result;
   },
+
+  addAsset: (asset) => set((state) => commit(state, (project) => {
+    project.assets[asset.path] = asset;
+    const parts = asset.path.split("/");
+    if (parts.length > 1) {
+      const folders = [...project.assetFolders];
+      for (let index = 1; index < parts.length; index += 1) {
+        const folder = parts.slice(0, index).join("/");
+        if (!folders.includes(folder)) folders.push(folder);
+      }
+      project.assetFolders = folders.sort();
+    }
+  })),
 
   updateAssetContent: (path, content) => {
     const normalized = path.replaceAll("\\", "/");

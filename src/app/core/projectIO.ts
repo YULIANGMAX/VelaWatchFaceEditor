@@ -545,6 +545,36 @@ export async function deleteResourceFolder(
   await directory.removeEntry(name, { recursive: true });
 }
 
+export async function writeResourceBinaryFile(
+  projectDirectory: FileSystemDirectoryHandle,
+  path: string,
+  content: Uint8Array | Blob,
+): Promise<void> {
+  const source = normalizePath(path);
+  const { directory, name } = await resourceParent(projectDirectory, source, true);
+  const handle = await directory.getFileHandle(name, { create: true });
+  if (content instanceof Blob) {
+    await writeBlob(handle, content, () => undefined);
+  } else {
+    await writeFile(handle, content as unknown as FileSystemWriteChunkType);
+  }
+}
+
+export async function createProjectAssetFromBytes(
+  path: string,
+  bytes: Uint8Array,
+): Promise<ProjectAsset> {
+  const memoryBlob = new Blob([bytes as unknown as BlobPart], { type: guessMimeType(path) });
+  const meta = await imageMetadata(memoryBlob, path);
+  return {
+    path,
+    blob: memoryBlob,
+    url: meta.previewUrl ?? objectUrl(memoryBlob),
+    lastModified: Date.now(),
+    ...meta,
+  };
+}
+
 export async function writeResourceTextFile(
   projectDirectory: FileSystemDirectoryHandle,
   path: string,

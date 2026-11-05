@@ -1,17 +1,21 @@
 import { memo, useMemo, useState, useEffect, useCallback } from "react";
 import {
+  ArrowRight,
   ArrowUpRight,
   Binary,
   Braces,
   ChevronDown,
   Check,
   Copy,
+  Download,
   Edit3,
   Eye,
   File,
   FileCode,
   FileText,
   Layers,
+  RefreshCw,
+  Sparkles,
   Trash2,
   ZoomIn,
   ZoomOut,
@@ -28,7 +32,13 @@ import {
 } from "../editor/manifestEditorSchema";
 import { useEditorStore, type Selection } from "../store/editorStore";
 import { dialogManager } from "../core/dialog";
-import { deleteResourceFile, writeResourceTextFile } from "../core/projectIO";
+import {
+  deleteResourceFile,
+  writeResourceTextFile,
+  writeResourceBinaryFile,
+  createProjectAssetFromBytes,
+} from "../core/projectIO";
+import { convertImageToLvgl, type LvglImageConversionResult } from "../core/lvglImageEncoder";
 import { InspectorCard, InspectorHeader, InspectorNavigation } from "./Inspector";
 import { CodeEditorDialog } from "./dialogs/CodeEditorDialog";
 import { CodeMirrorEditor, type CodeLanguage } from "./editor/CodeMirrorEditor";
@@ -267,6 +277,11 @@ export const AssetInspector = memo(function AssetInspector({
   const asset = project.assets[assetPath];
   const removeAsset = useEditorStore((state) => state.removeAsset);
   const updateAssetContent = useEditorStore((state) => state.updateAssetContent);
+  const addAsset = useEditorStore((state) => state.addAsset);
+  const setSelection = useEditorStore((state) => state.setSelection);
+
+  const [convertingFormat, setConvertingFormat] = useState<"rle" | "bin" | null>(null);
+  const [conversionResult, setConversionResult] = useState<LvglImageConversionResult | null>(null);
 
   const [copied, setCopied] = useState(false);
   const [copiedContent, setCopiedContent] = useState(false);
@@ -360,6 +375,46 @@ export const AssetInspector = memo(function AssetInspector({
       setTimeout(() => setCopiedContent(false), 1500);
     }
   }, [textContent]);
+
+  // 切换选中资产时重置转换状态
+  useEffect(() => {
+    setConversionResult(null);
+  }, [assetPath]);
+
+  // LVGL 格式转换 (RLE / BIN)
+  const handleConvert = useCallback(async (targetFormat: "rle" | "bin") => {
+    if (!asset?.blob) return;
+    setConvertingFormat(targetFormat);
+    try {
+      const res = await convertImageToLvgl(asset.blob, targetFormat, assetPath);
+      setConversionResult(res);
+
+      const newAsset = await createProjectAssetFromBytes(res.targetPath, res.data);
+      addAsset(newAsset);
+
+      if (projectDirectory) {
+        await writeResourceBinaryFile(projectDirectory, res.targetPath, res.data);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "图像格式转换失败";
+      void dialogManager.alert({ title: "转换失败", message: msg, type: "error" });
+    } finally {
+      setConvertingFormat(null);
+    }
+  }, [asset?.blob, assetPath, addAsset, projectDirectory]);
+
+  // 下载转换后的文件
+  const handleDownloadConverted = useCallback((res: LvglImageConversionResult) => {
+    const blob = new Blob([res.data as unknown as BlobPart], { type: "application/octet-stream" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = res.targetFilename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, []);
 
   // 从弹窗大编辑器保存
   const handleSaveCode = useCallback(async (newContent: string) => {
@@ -564,6 +619,111 @@ export const AssetInspector = memo(function AssetInspector({
               ) : (
                 <div className="asset-code-empty">未能读取文本内容</div>
               )}
+            </div>
+          </InspectorCard>
+        ) : null}
+
+        {/* LVGL 格式转换卡片 (RLE / BIN) */}
+        {isImg ? (
+          <InspectorCard
+            title="LVGL 格式转换"
+            icon={<Sparkles size={15} className="card-icon" />}
+            badge={
+              <span
+                className="asset-type-badge-pill"
+                style={{ backgroundColor: "rgba(28, 124, 119, 0.12)", color: "#1c7c77" }}
+              >
+                Vela 原生
+              </span>
+            }
+          >
+            <div className="asset-convert-container">
+              <p className="asset-convert-hint">
+                将图像转为小米 Vela 手表原生支持的独立切图格式，供 Lua 脚本或组件直接调用：
+              </p>
+
+              <div className="asset-convert-grid">
+                <button
+                  type="button"
+                  className="asset-convert-btn"
+                  disabled={convertingFormat !== null || assetPath.toLowerCase().endsWith(".rle")}
+                  onClick={() => handleConvert("rle")}
+                  title={assetPath.toLowerCase().endsWith(".rle") ? "当前已是 RLE 格式" : "转换为 256 色游程压缩图 (.rle)"}
+                >
+                  <div className="asset-convert-btn-header">
+                    <span className="asset-convert-btn-title">
+                      {convertingFormat === "rle" ? <RefreshCw size={13} className="spin" /> : <Binary size={13} />}
+                      转为 RLE
+                    </span>
+                    <span className="asset-convert-btn-tag is-rle">推荐背景</span>
+                  </div>
+                  <span className="asset-convert-btn-desc">
+                    256 色调色板 + 游程压缩，体积缩小 70%~90%，最省闪存
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className="asset-convert-btn"
+                  disabled={convertingFormat !== null || assetPath.toLowerCase().endsWith(".bin")}
+                  onClick={() => handleConvert("bin")}
+                  title={assetPath.toLowerCase().endsWith(".bin") ? "当前已是 BIN 格式" : "转换为 32 位真彩裸位图 (.bin)"}
+                >
+                  <div className="asset-convert-btn-header">
+                    <span className="asset-convert-btn-title">
+                      {convertingFormat === "bin" ? <RefreshCw size={13} className="spin" /> : <Binary size={13} />}
+                      转为 BIN
+                    </span>
+                    <span className="asset-convert-btn-tag is-bin">推荐小图标</span>
+                  </div>
+                  <span className="asset-convert-btn-desc">
+                    32 位 BGRA 裸数据，100% 真彩无损，零 CPU 解码开销
+                  </span>
+                </button>
+              </div>
+
+              {conversionResult ? (
+                <div className="asset-convert-result-card">
+                  <div className="asset-convert-result-header">
+                    <span>
+                      ✓ 转换成功并已保存：{conversionResult.targetFilename}
+                    </span>
+                  </div>
+
+                  <div className="asset-convert-result-stats">
+                    <span>
+                      {formatBytes(conversionResult.sourceSize)} →{" "}
+                      <strong>{formatBytes(conversionResult.targetSize)}</strong>
+                    </span>
+                    <span className="asset-convert-result-ratio">
+                      {conversionResult.compressionRatio <= 0
+                        ? `${conversionResult.compressionRatio.toFixed(1)}%`
+                        : `+${conversionResult.compressionRatio.toFixed(1)}%`}
+                    </span>
+                  </div>
+
+                  <div className="asset-convert-result-actions">
+                    <button
+                      type="button"
+                      className="asset-convert-action-btn is-download"
+                      onClick={() => handleDownloadConverted(conversionResult)}
+                      title="下载转换后的文件到本地"
+                    >
+                      <Download size={12} />
+                      <span>下载文件</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="asset-convert-action-btn is-navigate"
+                      onClick={() => setSelection({ kind: "asset", path: conversionResult.targetPath })}
+                      title="在资产列表中查看新生成的文件"
+                    >
+                      <ArrowRight size={12} />
+                      <span>查看新文件</span>
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </InspectorCard>
         ) : null}
